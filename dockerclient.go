@@ -1,6 +1,7 @@
 package dockerclient
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -39,8 +40,9 @@ func newHTTPClient(u *url.URL) *http.Client {
 	return &http.Client{Transport: httpTransport}
 }
 
-func (client *DockerClient) doRequest(method string, path string) ([]byte, error) {
-	req, err := http.NewRequest(method, client.URL.String() + path, nil)
+func (client *DockerClient) doRequest(method string, path string, body []byte) ([]byte, error) {
+	b := bytes.NewBuffer(body)
+	req, err := http.NewRequest(method, client.URL.String()+path, b)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +55,9 @@ func (client *DockerClient) doRequest(method string, path string) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("%s: %s", resp.Status, data)
+	}
 	return data, nil
 }
 
@@ -62,22 +67,83 @@ func (client *DockerClient) ListContainers(all bool) (*[]Container, error) {
 		argAll = 1
 	}
 	args := fmt.Sprintf("?all=%d", argAll)
-	data, err := client.doRequest("GET", "/v1.8/containers/json" + args)
+	data, err := client.doRequest("GET", "/v1.8/containers/json"+args, nil)
 	if err != nil {
 		return nil, err
 	}
 	ret := &[]Container{}
-	json.Unmarshal(data, ret)
+	err = json.Unmarshal(data, ret)
+	if err != nil {
+		return nil, err
+	}
 	return ret, nil
 }
 
 func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) {
 	uri := fmt.Sprintf("/v1.8/containers/%s/json", id)
-	data, err := client.doRequest("GET", uri)
+	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}
 	info := &ContainerInfo{}
-	json.Unmarshal(data, info)
+	err = json.Unmarshal(data, info)
+	if err != nil {
+		return nil, err
+	}
 	return info, nil
+}
+
+func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := "/v1.8/containers/create"
+	data, err = client.doRequest("POST", uri, data)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(string(data))
+	result := make(map[string]string)
+	err = json.Unmarshal(data, &result)
+	if err != nil {
+		return "", err
+	}
+	return result["Id"], nil
+}
+
+func (client *DockerClient) StartContainer(id string) error {
+	uri := fmt.Sprintf("/v1.8/containers/%s/start", id)
+	_, err := client.doRequest("POST", uri, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (client *DockerClient) StopContainer(id string, timeout int) error {
+	uri := fmt.Sprintf("/v1.8/containers/%s/stop?t=%d", id, timeout)
+	_, err := client.doRequest("POST", uri, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (client *DockerClient) RestartContainer(id string, timeout int) error {
+	uri := fmt.Sprintf("/v1.8/containers/%s/restart?t=%d", id, timeout)
+	_, err := client.doRequest("POST", uri, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (client *DockerClient) KillContainer(id string) error {
+	uri := fmt.Sprintf("/v1.8/containers/%s/kill", id)
+	_, err := client.doRequest("POST", uri, nil)
+	if err != nil {
+		return err
+	}
+	return nil
 }

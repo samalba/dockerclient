@@ -39,46 +39,46 @@ type PortBinding struct {
 }
 
 type ContainerInfo struct {
-	Id string
+	Id     string
 	Create string
-	Path string
-	Args []string
+	Path   string
+	Args   []string
 	Config *ContainerConfig
-	State struct {
-		Running bool
-		Pid int
-		ExitCode int
+	State  struct {
+		Running   bool
+		Pid       int
+		ExitCode  int
 		StartedAt string
-		Ghost bool
+		Ghost     bool
 	}
-	Image string
+	Image           string
 	NetworkSettings struct {
-		IpAddress string
+		IpAddress   string
 		IpPrefixLen int
-		Gateway string
-		Bridge string
-		Ports map[string][]PortBinding
+		Gateway     string
+		Bridge      string
+		Ports       map[string][]PortBinding
 	}
-	SysInitPath string
+	SysInitPath    string
 	ResolvConfPath string
-	Volumes map[string]string
-	HostConfig *HostConfig
+	Volumes        map[string]string
+	HostConfig     *HostConfig
 }
 
 type Port struct {
 	PrivatePort int
-	PublicPort int
-	Type string
+	PublicPort  int
+	Type        string
 }
 
 type Container struct {
-	Id string
-	Names []string
-	Image string
-	Command string
-	Created int
-	Status string
-	Ports []Port
-	SizeRw int
+	Id         string
+	Names      []string
+	Image      string
+	Command    string
+	Created    int
+	Status     string
+	Ports      []Port
+	SizeRw     int
 	SizeRootFs int
 }
