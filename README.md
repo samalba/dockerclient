@@ -26,5 +26,19 @@ func main() {
 	// Inspect the first container returned
 	info, _ := docker.InspectContainer((*containers)[0].Id)
 	log.Println(info)
+	// Create a container
+	containerConfig := &dockerclient.ContainerConfig{
+		Image: "ubuntu", Cmd: []string{"bash"}}
+	containerId, err := docker.CreateContainer(containerConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Start the container
+	err = docker.StartContainer(containerId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Stop the container (with 5 seconds timeout)
+	docker.StartContainer(containerId, 5)
 }
 ```
