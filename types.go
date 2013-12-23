@@ -28,7 +28,7 @@ type HostConfig struct {
 	ContainerIDFile string
 	LxcConf         []map[string]string
 	Privileged      bool
-	PortBindings    map[Port][]PortBinding
+	PortBindings    map[string][]PortBinding
 	Links           []string
 	PublishAllPorts bool
 }
@@ -81,4 +81,11 @@ type Container struct {
 	Ports      []Port
 	SizeRw     int
 	SizeRootFs int
+}
+
+type Event struct {
+	Id     string
+	Status string
+	From   string
+	Time   int
 }

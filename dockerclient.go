@@ -8,11 +8,14 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync/atomic"
+	"time"
 )
 
 type DockerClient struct {
-	URL        *url.URL
-	HTTPClient *http.Client
+	URL           *url.URL
+	HTTPClient    *http.Client
+	monitorEvents int32
 }
 
 func NewDockerClient(daemonUrl string) (*DockerClient, error) {
@@ -21,7 +24,7 @@ func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 		return nil, err
 	}
 	httpClient := newHTTPClient(u)
-	return &DockerClient{u, httpClient}, nil
+	return &DockerClient{u, httpClient, 0}, nil
 }
 
 func newHTTPClient(u *url.URL) *http.Client {
@@ -146,4 +149,50 @@ func (client *DockerClient) KillContainer(id string) error {
 		return err
 	}
 	return nil
+}
+
+func (client *DockerClient) StartMonitorEvents(cb func(*Event)) {
+	atomic.StoreInt32(&client.monitorEvents, 1)
+	wait := 100 * time.Millisecond
+	buffer := make([]byte, 4096)
+	var running int32 = 1
+	go func() {
+		for running > 0 {
+			running = atomic.LoadInt32(&client.monitorEvents)
+			if running == 0 {
+				break
+			}
+			uri := client.URL.String() + "/v1.8/events"
+			resp, err := client.HTTPClient.Get(uri)
+			fmt.Println("New Request")
+			if err != nil {
+				time.Sleep(wait)
+				continue
+			}
+			if resp.StatusCode >= 300 {
+				resp.Body.Close()
+				time.Sleep(wait)
+				continue
+			}
+			for {
+				_, err = resp.Body.Read(buffer)
+				if err != nil {
+					resp.Body.Close()
+					time.Sleep(wait)
+					break
+				}
+				event := &Event{}
+				fmt.Println(string(buffer))
+				err = json.Unmarshal(buffer, event)
+				if err == nil {
+					cb(event)
+				}
+			}
+			time.Sleep(wait)
+		}
+	}()
+}
+
+func (client *DockerClient) StopAllMonitorEvents() {
+	atomic.StoreInt32(&client.monitorEvents, 0)
 }
