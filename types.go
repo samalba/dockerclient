@@ -1,0 +1,84 @@
+package dockerclient
+
+type ContainerConfig struct {
+	Hostname        string
+	Domainname      string
+	User            string
+	Memory          int
+	MemorySwap      int
+	CpuShares       int
+	AttachStdin     bool
+	AttachStdout    bool
+	AttachStderr    bool
+	Tty             bool
+	OpenStdin       bool
+	StdinOnce       bool
+	Env             []string
+	Cmd             []string
+	Dns             []string
+	Image           string
+	VolumesFrom     string
+	WorkingDir      string
+	Entrypoint      []string
+	NetworkDisabled bool
+}
+
+type HostConfig struct {
+	Binds           []string
+	ContainerIDFile string
+	LxcConf         []map[string]string
+	Privileged      bool
+	PortBindings    map[Port][]PortBinding
+	Links           []string
+	PublishAllPorts bool
+}
+
+type PortBinding struct {
+	HostIp   string
+	HostPort string
+}
+
+type ContainerInfo struct {
+	Id string
+	Create string
+	Path string
+	Args []string
+	Config *ContainerConfig
+	State struct {
+		Running bool
+		Pid int
+		ExitCode int
+		StartedAt string
+		Ghost bool
+	}
+	Image string
+	NetworkSettings struct {
+		IpAddress string
+		IpPrefixLen int
+		Gateway string
+		Bridge string
+		Ports map[string][]PortBinding
+	}
+	SysInitPath string
+	ResolvConfPath string
+	Volumes map[string]string
+	HostConfig *HostConfig
+}
+
+type Port struct {
+	PrivatePort int
+	PublicPort int
+	Type string
+}
+
+type Container struct {
+	Id string
+	Names []string
+	Image string
+	Command string
+	Created int
+	Status string
+	Ports []Port
+	SizeRw int
+	SizeRootFs int
+}
