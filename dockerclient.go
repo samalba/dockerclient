@@ -196,3 +196,16 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event)) {
 func (client *DockerClient) StopAllMonitorEvents() {
 	atomic.StoreInt32(&client.monitorEvents, 0)
 }
+
+func (client *DockerClient) Version() (*Version, error) {
+	data, err := client.doRequest("GET", "/v1.8/version", nil)
+	if err != nil {
+		return nil, err
+	}
+	version := &Version{}
+	err = json.Unmarshal(data, version)
+	if err != nil {
+		return nil, err
+	}
+	return version, nil
+}

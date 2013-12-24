@@ -89,3 +89,9 @@ type Event struct {
 	From   string
 	Time   int
 }
+
+type Version struct {
+	Version   string
+	GitCommit string
+	GoVersion string
+}
