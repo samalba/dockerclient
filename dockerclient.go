@@ -64,7 +64,7 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	return data, nil
 }
 
-func (client *DockerClient) ListContainers(all bool) (*[]Container, error) {
+func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	argAll := 0
 	if all == true {
 		argAll = 1
@@ -74,8 +74,8 @@ func (client *DockerClient) ListContainers(all bool) (*[]Container, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := &[]Container{}
-	err = json.Unmarshal(data, ret)
+	ret := []Container{}
+	err = json.Unmarshal(data, &ret)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,6 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event)) {
 			}
 			uri := client.URL.String() + "/v1.8/events"
 			resp, err := client.HTTPClient.Get(uri)
-			fmt.Println("New Request")
 			if err != nil {
 				time.Sleep(wait)
 				continue
@@ -182,7 +181,6 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event)) {
 					break
 				}
 				event := &Event{}
-				fmt.Println(string(buffer))
 				err = json.Unmarshal(buffer, event)
 				if err == nil {
 					cb(event)

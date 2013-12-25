@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, c := range *containers {
+	for _, c := range containers {
 		log.Println(c.Id, c.Names)
 	}
 
