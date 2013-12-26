@@ -151,7 +151,7 @@ func (client *DockerClient) KillContainer(id string) error {
 	return nil
 }
 
-func (client *DockerClient) StartMonitorEvents(cb func(*Event)) {
+func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), args ...interface{}) {
 	atomic.StoreInt32(&client.monitorEvents, 1)
 	wait := 100 * time.Millisecond
 	buffer := make([]byte, 4096)
@@ -183,7 +183,7 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event)) {
 				event := &Event{}
 				err = json.Unmarshal(buffer, event)
 				if err == nil {
-					cb(event)
+					cb(event, args...)
 				}
 			}
 			time.Sleep(wait)
