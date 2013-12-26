@@ -174,14 +174,14 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), 
 				continue
 			}
 			for {
-				_, err = resp.Body.Read(buffer)
+				nBytes, err := resp.Body.Read(buffer)
 				if err != nil {
 					resp.Body.Close()
 					time.Sleep(wait)
 					break
 				}
 				event := &Event{}
-				err = json.Unmarshal(buffer, event)
+				err = json.Unmarshal(buffer[:nBytes], event)
 				if err == nil {
 					cb(event, args...)
 				}
