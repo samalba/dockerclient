@@ -33,7 +33,7 @@ func main() {
 	}
 
 	// Inspect the first container returned
-	id := (*containers)[0].Id
+	id := containers[0].Id
 	info, _ := docker.InspectContainer(id)
 	log.Println(info)
 
