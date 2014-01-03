@@ -83,6 +83,14 @@ type Container struct {
 	SizeRootFs int
 }
 
+type Image struct {
+	RepoTag     []string
+        Id          string
+        Created     int
+        Size        int
+        VirtualSize int 
+}
+
 type Event struct {
 	Id     string
 	Status string
