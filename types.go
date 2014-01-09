@@ -84,11 +84,11 @@ type Container struct {
 }
 
 type Image struct {
-	RepoTag     []string
-        Id          string
-        Created     int
-        Size        int
-        VirtualSize int 
+	RepoTags    []string
+	Id          string
+	Created     int
+	Size        int
+	VirtualSize int
 }
 
 type Event struct {
