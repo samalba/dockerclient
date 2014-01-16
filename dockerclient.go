@@ -64,6 +64,24 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	return data, nil
 }
 
+func (client *DockerClient) ListImages(all bool) ([]Image, error) {
+        argAll := 0
+        if all == true {
+                argAll = 1
+        }
+        args := fmt.Sprintf("?all=%d", argAll)
+        data, err := client.doRequest("GET", "/v1.8/images/json"+args, nil)
+        if err != nil {
+                return nil, err
+        }
+        ret := []Image{}
+        err = json.Unmarshal(data, &ret)
+        if err != nil {
+                return nil, err
+        }
+        return ret, nil
+}
+
 func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	argAll := 0
 	if all == true {

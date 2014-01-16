@@ -17,6 +17,7 @@ type ContainerConfig struct {
 	Cmd             []string
 	Dns             []string
 	Image           string
+	Volumes         []string
 	VolumesFrom     string
 	WorkingDir      string
 	Entrypoint      []string
@@ -81,6 +82,14 @@ type Container struct {
 	Ports      []Port
 	SizeRw     int
 	SizeRootFs int
+}
+
+type Image struct {
+	RepoTags    []string
+	Id          string
+	Created     int
+	Size        int
+	VirtualSize int
 }
 
 type Event struct {
