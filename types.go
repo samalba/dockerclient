@@ -17,6 +17,7 @@ type ContainerConfig struct {
 	Cmd             []string
 	Dns             []string
 	Image           string
+	Volumes         []string
 	VolumesFrom     string
 	WorkingDir      string
 	Entrypoint      []string
