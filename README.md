@@ -33,9 +33,11 @@ func main() {
 	}
 
 	// Inspect the first container returned
-	id := containers[0].Id
-	info, _ := docker.InspectContainer(id)
-	log.Println(info)
+	if len(containers) > 0 {
+		id := containers[0].Id
+		info, _ := docker.InspectContainer(id)
+		log.Println(info)
+	}
 
 	// Create a container
 	containerConfig := &dockerclient.ContainerConfig{
