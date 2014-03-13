@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Stop the container (with 5 seconds timeout)
-	docker.StartContainer(containerId, 5)
+	docker.StopContainer(containerId, 5)
 
 	// Listen to events
 	docker.StartMonitorEvents(eventCallback)
