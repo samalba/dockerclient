@@ -15,7 +15,7 @@ import (
 )
 
 // Callback used to listen to Docker's events
-func eventCallback(event *dockerclient.Event) {
+func eventCallback(event *dockerclient.Event, args ...interface{}) {
 	log.Printf("Received event: %#v\n", *event)
 }
 
