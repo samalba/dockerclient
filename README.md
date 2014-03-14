@@ -15,7 +15,7 @@ import (
 )
 
 // Callback used to listen to Docker's events
-func eventCallback(event *dockerclient.Event) {
+func eventCallback(event *dockerclient.Event, args ...interface{}) {
 	log.Printf("Received event: %#v\n", *event)
 }
 
@@ -33,13 +33,14 @@ func main() {
 	}
 
 	// Inspect the first container returned
-	id := containers[0].Id
-	info, _ := docker.InspectContainer(id)
-	log.Println(info)
+	if len(containers) > 0 {
+		id := containers[0].Id
+		info, _ := docker.InspectContainer(id)
+		log.Println(info)
+	}
 
 	// Create a container
-	containerConfig := &dockerclient.ContainerConfig{
-		Image: "ubuntu", Cmd: []string{"bash"}}
+	containerConfig := &dockerclient.ContainerConfig{Image: "ubuntu:12.04", Cmd: []string{"bash"}}
 	containerId, err := docker.CreateContainer(containerConfig)
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +53,7 @@ func main() {
 	}
 
 	// Stop the container (with 5 seconds timeout)
-	docker.StartContainer(containerId, 5)
+	docker.StopContainer(containerId, 5)
 
 	// Listen to events
 	docker.StartMonitorEvents(eventCallback)

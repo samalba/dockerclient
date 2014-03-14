@@ -70,7 +70,7 @@ func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 		argAll = 1
 	}
 	args := fmt.Sprintf("?all=%d", argAll)
-	data, err := client.doRequest("GET", "/v1.8/containers/json"+args, nil)
+	data, err := client.doRequest("GET", "/v1.10/containers/json"+args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 }
 
 func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) {
-	uri := fmt.Sprintf("/v1.8/containers/%s/json", id)
+	uri := fmt.Sprintf("/v1.10/containers/%s/json", id)
 	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -101,22 +101,21 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 	if err != nil {
 		return "", err
 	}
-	uri := "/v1.8/containers/create"
+	uri := "/v1.10/containers/create"
 	data, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(string(data))
-	result := make(map[string]string)
-	err = json.Unmarshal(data, &result)
+	result := &RespContainersCreate{}
+	err = json.Unmarshal(data, result)
 	if err != nil {
 		return "", err
 	}
-	return result["Id"], nil
+	return result.Id, nil
 }
 
 func (client *DockerClient) StartContainer(id string) error {
-	uri := fmt.Sprintf("/v1.8/containers/%s/start", id)
+	uri := fmt.Sprintf("/v1.10/containers/%s/start", id)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -125,7 +124,7 @@ func (client *DockerClient) StartContainer(id string) error {
 }
 
 func (client *DockerClient) StopContainer(id string, timeout int) error {
-	uri := fmt.Sprintf("/v1.8/containers/%s/stop?t=%d", id, timeout)
+	uri := fmt.Sprintf("/v1.10/containers/%s/stop?t=%d", id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -134,7 +133,7 @@ func (client *DockerClient) StopContainer(id string, timeout int) error {
 }
 
 func (client *DockerClient) RestartContainer(id string, timeout int) error {
-	uri := fmt.Sprintf("/v1.8/containers/%s/restart?t=%d", id, timeout)
+	uri := fmt.Sprintf("/v1.10/containers/%s/restart?t=%d", id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -143,7 +142,7 @@ func (client *DockerClient) RestartContainer(id string, timeout int) error {
 }
 
 func (client *DockerClient) KillContainer(id string) error {
-	uri := fmt.Sprintf("/v1.8/containers/%s/kill", id)
+	uri := fmt.Sprintf("/v1.10/containers/%s/kill", id)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -162,7 +161,7 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), 
 			if running == 0 {
 				break
 			}
-			uri := client.URL.String() + "/v1.8/events"
+			uri := client.URL.String() + "/v1.10/events"
 			resp, err := client.HTTPClient.Get(uri)
 			if err != nil {
 				time.Sleep(wait)
@@ -196,7 +195,7 @@ func (client *DockerClient) StopAllMonitorEvents() {
 }
 
 func (client *DockerClient) Version() (*Version, error) {
-	data, err := client.doRequest("GET", "/v1.8/version", nil)
+	data, err := client.doRequest("GET", "/v1.10/version", nil)
 	if err != nil {
 		return nil, err
 	}
