@@ -95,3 +95,8 @@ type Version struct {
 	GitCommit string
 	GoVersion string
 }
+
+type RespContainersCreate struct {
+	Id       string
+	Warnings []string
+}
