@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+const (
+	APIVERSION = "v1.10"
+)
+
 type DockerClient struct {
 	URL           *url.URL
 	HTTPClient    *http.Client
@@ -70,7 +74,8 @@ func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 		argAll = 1
 	}
 	args := fmt.Sprintf("?all=%d", argAll)
-	data, err := client.doRequest("GET", "/v1.10/containers/json"+args, nil)
+	uri := fmt.Sprintf("/%s/containers/json%s", APIVERSION, args)
+	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +88,7 @@ func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 }
 
 func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) {
-	uri := fmt.Sprintf("/v1.10/containers/%s/json", id)
+	uri := fmt.Sprintf("/%s/containers/%s/json", APIVERSION, id)
 	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -101,7 +106,7 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 	if err != nil {
 		return "", err
 	}
-	uri := "/v1.10/containers/create"
+	uri := fmt.Sprintf("/%s/containers/create", APIVERSION)
 	data, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return "", err
@@ -115,7 +120,7 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 }
 
 func (client *DockerClient) StartContainer(id string) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/start", id)
+	uri := fmt.Sprintf("/%s/containers/%s/start", APIVERSION, id)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -124,7 +129,7 @@ func (client *DockerClient) StartContainer(id string) error {
 }
 
 func (client *DockerClient) StopContainer(id string, timeout int) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/stop?t=%d", id, timeout)
+	uri := fmt.Sprintf("/%s/containers/%s/stop?t=%d", APIVERSION, id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -133,7 +138,7 @@ func (client *DockerClient) StopContainer(id string, timeout int) error {
 }
 
 func (client *DockerClient) RestartContainer(id string, timeout int) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/restart?t=%d", id, timeout)
+	uri := fmt.Sprintf("/%s/containers/%s/restart?t=%d", APIVERSION, id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -142,7 +147,7 @@ func (client *DockerClient) RestartContainer(id string, timeout int) error {
 }
 
 func (client *DockerClient) KillContainer(id string) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/kill", id)
+	uri := fmt.Sprintf("/%s/containers/%s/kill", APIVERSION, id)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -161,7 +166,7 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), 
 			if running == 0 {
 				break
 			}
-			uri := client.URL.String() + "/v1.10/events"
+			uri := client.URL.String() + "/" + APIVERSION + "/events"
 			resp, err := client.HTTPClient.Get(uri)
 			if err != nil {
 				time.Sleep(wait)
@@ -195,7 +200,8 @@ func (client *DockerClient) StopAllMonitorEvents() {
 }
 
 func (client *DockerClient) Version() (*Version, error) {
-	data, err := client.doRequest("GET", "/v1.10/version", nil)
+	uri := fmt.Sprintf("/%s/version", APIVERSION)
+	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
 	}
