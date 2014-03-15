@@ -40,7 +40,11 @@ func main() {
 	}
 
 	// Create a container
-	containerConfig := &dockerclient.ContainerConfig{Image: "ubuntu:12.04", Cmd: []string{"bash"}}
+	containerConfig := &dockerclient.ContainerConfig{
+		Image: "ubuntu:12.04",
+		Cmd:   []string{"/bin/bash"},
+		Tty: true,
+	}
 	containerId, err := docker.CreateContainer(containerConfig)
 	if err != nil {
 		log.Fatal(err)
