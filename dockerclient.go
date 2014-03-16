@@ -233,7 +233,10 @@ func (client *DockerClient) AttachContainer(id string, att Attach) error {
 		// Tty implementation
 
 		if att.Stdin != nil {
-			go io.Copy(att.Stdout, hjBuf)
+			go func() {
+				// FIX: There is extra output due stdin
+				io.Copy(att.Stdout, hjBuf)
+			}()
 
 			_, err := io.Copy(hjConn, att.Stdin)
 			if err != nil {
