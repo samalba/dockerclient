@@ -1,9 +1,12 @@
-Docker client library in Go
-===========================
+## Docker client library in Go
 
-This library supports few API calls but it will get extended over time.
+This library supports few API calls but it will get extended over time.  
 
-Example:
+Docker is an open-source engine that automates the deployment of any application as a lightweight, 
+portable, self-sufficient container that will run virtually anywhere.
+For more information see [Learn what Docker is all about](https://www.docker.io/learn_more/)  
+
+#### Example:
 
 ```go
 package main
@@ -89,3 +92,12 @@ func main() {
 	// time.Sleep(3600 * time.Second)
 }
 ```
+
+### Contribution
+
+Pull requests are welcome.
+
+### License
+
+Licensed under The Apache License  
+For the full copyright and license information, please view the LICENSE file.

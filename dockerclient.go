@@ -1,3 +1,11 @@
+// dockerclient
+// For the full copyright and license information, please view the LICENSE file.
+
+// Package dockerclient provides Docker client library
+//
+// References:
+//  Attach Protocol: http://docs.docker.io/en/latest/reference/api/docker_remote_api_v1.10/#attach-to-a-container
+//
 package dockerclient
 
 import (
@@ -20,12 +28,14 @@ const (
 	APIVERSION = "v1.10"
 )
 
+// DockerClient implements a docker client.
 type DockerClient struct {
 	URL           *url.URL
 	HTTPClient    *http.Client
 	monitorEvents int32
 }
 
+// NewDockerClient returns a new docker client with the given URL.
 func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
@@ -35,6 +45,7 @@ func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	return &DockerClient{u, httpClient, 0}, nil
 }
 
+// newHTTPClient returns a new HTTP client with the given URL.
 func newHTTPClient(u *url.URL) *http.Client {
 	httpTransport := &http.Transport{}
 	if u.Scheme == "unix" {
@@ -51,6 +62,7 @@ func newHTTPClient(u *url.URL) *http.Client {
 	return &http.Client{Transport: httpTransport}
 }
 
+// doRequest makes request to the docker with the given method, path and body.
 func (client *DockerClient) doRequest(method string, path string, body []byte) ([]byte, error) {
 	b := bytes.NewBuffer(body)
 	req, err := http.NewRequest(method, client.URL.String()+path, b)
@@ -72,6 +84,7 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	return data, nil
 }
 
+// ListContainers returns the list of the containers.
 func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	argAll := 0
 	if all == true {
@@ -91,6 +104,7 @@ func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	return ret, nil
 }
 
+// InspectContainer inspects and returns the container information with the given container id.
 func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) {
 	uri := fmt.Sprintf("/%s/containers/%s/json", APIVERSION, id)
 	data, err := client.doRequest("GET", uri, nil)
@@ -105,6 +119,7 @@ func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) 
 	return info, nil
 }
 
+// CreateContainer creates a container and returns the id.
 func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, error) {
 	data, err := json.Marshal(config)
 	if err != nil {
@@ -123,6 +138,7 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 	return result.Id, nil
 }
 
+// StartContainer starts the container with the given id.
 func (client *DockerClient) StartContainer(id string) error {
 	uri := fmt.Sprintf("/%s/containers/%s/start", APIVERSION, id)
 	_, err := client.doRequest("POST", uri, nil)
@@ -132,6 +148,7 @@ func (client *DockerClient) StartContainer(id string) error {
 	return nil
 }
 
+// StopContainer stops the container with the given id.
 func (client *DockerClient) StopContainer(id string, timeout int) error {
 	uri := fmt.Sprintf("/%s/containers/%s/stop?t=%d", APIVERSION, id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
@@ -141,6 +158,7 @@ func (client *DockerClient) StopContainer(id string, timeout int) error {
 	return nil
 }
 
+// RestartContainer restarts the container with the given id.
 func (client *DockerClient) RestartContainer(id string, timeout int) error {
 	uri := fmt.Sprintf("/%s/containers/%s/restart?t=%d", APIVERSION, id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
@@ -150,6 +168,7 @@ func (client *DockerClient) RestartContainer(id string, timeout int) error {
 	return nil
 }
 
+// KillContainer kills the container with the given id.
 func (client *DockerClient) KillContainer(id string) error {
 	uri := fmt.Sprintf("/%s/containers/%s/kill", APIVERSION, id)
 	_, err := client.doRequest("POST", uri, nil)
@@ -159,6 +178,7 @@ func (client *DockerClient) KillContainer(id string) error {
 	return nil
 }
 
+// AttachContainer attaches to the container with the given id and an Attach variable.
 func (client *DockerClient) AttachContainer(id string, att Attach) error {
 
 	// Attach protocol stream details:
@@ -258,6 +278,7 @@ func (client *DockerClient) AttachContainer(id string, att Attach) error {
 	return nil
 }
 
+// StartMonitorEvents provides event monitoring with the given callback function and the arguments.
 func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), args ...interface{}) {
 	atomic.StoreInt32(&client.monitorEvents, 1)
 	wait := 100 * time.Millisecond
@@ -298,10 +319,12 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), 
 	}()
 }
 
+// StopAllMonitorEvents stops the all event monitoring related stuff.
 func (client *DockerClient) StopAllMonitorEvents() {
 	atomic.StoreInt32(&client.monitorEvents, 0)
 }
 
+// Version returns the version information of the Docker.
 func (client *DockerClient) Version() (*Version, error) {
 	uri := fmt.Sprintf("/%s/version", APIVERSION)
 	data, err := client.doRequest("GET", uri, nil)
