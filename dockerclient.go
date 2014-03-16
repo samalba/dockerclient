@@ -230,38 +230,27 @@ func (client *DockerClient) AttachContainer(id string, att Attach) error {
 
 	// Attach
 	if att.Tty == true {
-
 		// Tty implementation
 
 		if att.Stdin != nil {
-
-			go func() {
-
-				// FIX: There is extra output due stdin
-
+			if att.Stdout != nil {
 				go func() {
-					if att.Stdout != nil {
-						io.Copy(att.Stdout, hjBuf)
-					}
+					// FIX: There is extra output due stdin
+					io.Copy(att.Stdout, hjBuf)
 				}()
-			}()
+			}
 
 			io.Copy(hjConn, att.Stdin)
-
 		} else if att.StdinPipe != nil {
-
 			io.Copy(hjConn, att.StdinPipe)
 
 			if att.Stdout != nil {
 				io.Copy(att.Stdout, hjBuf)
 			}
-
 		} else if att.Stdout != nil {
-
 			io.Copy(att.Stdout, hjBuf)
 		}
 	} else {
-
 		// Multiplexed implementation
 
 		return errors.New("Multiplexed implementation is still under development...")
