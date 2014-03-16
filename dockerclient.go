@@ -9,6 +9,7 @@
 package dockerclient
 
 import (
+	//"bufio"
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
@@ -233,23 +234,30 @@ func (client *DockerClient) AttachContainer(id string, att Attach) error {
 		// Tty implementation
 
 		if att.Stdin != nil {
+
 			go func() {
+
 				// FIX: There is extra output due stdin
-				io.Copy(att.Stdout, hjBuf)
+
+				go func() {
+					if att.Stdout != nil {
+						io.Copy(att.Stdout, hjBuf)
+					}
+				}()
 			}()
 
-			_, err := io.Copy(hjConn, att.Stdin)
-			if err != nil {
-				return errors.New("failed to send data (Stdin): " + err.Error())
-			}
+			io.Copy(hjConn, att.Stdin)
+
 		} else if att.StdinPipe != nil {
-			_, err := io.Copy(hjConn, att.StdinPipe)
-			if err != nil {
-				return errors.New("failed to send data (StdinPipe): " + err.Error())
-			} else {
+
+			io.Copy(hjConn, att.StdinPipe)
+
+			if att.Stdout != nil {
 				io.Copy(att.Stdout, hjBuf)
 			}
-		} else {
+
+		} else if att.Stdout != nil {
+
 			io.Copy(att.Stdout, hjBuf)
 		}
 	} else {
