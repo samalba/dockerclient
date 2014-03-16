@@ -1,5 +1,9 @@
 package dockerclient
 
+import (
+	"io"
+)
+
 type ContainerConfig struct {
 	Hostname        string
 	Domainname      string
@@ -94,6 +98,14 @@ type Version struct {
 	Version   string
 	GitCommit string
 	GoVersion string
+}
+
+type Attach struct {
+	Tty       bool
+	Stdin     io.Reader
+	Stdout    io.Writer
+	Stderr    io.Writer
+	StdinPipe io.Reader
 }
 
 type RespContainersCreate struct {

@@ -2,11 +2,15 @@ package dockerclient
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"sync/atomic"
 	"time"
@@ -152,6 +156,105 @@ func (client *DockerClient) KillContainer(id string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (client *DockerClient) AttachContainer(id string, att Attach) error {
+
+	// Attach protocol stream details:
+	// When using the TTY setting is enabled in POST /containers/create,
+	// the stream is the raw data from the process PTY and client’s stdin.
+	// When the TTY is disabled, then the stream is multiplexed to separate stdout and stderr.
+	//
+	// HEADER
+	// 	header := [8]byte{STREAM_TYPE, 0, 0, 0, SIZE1, SIZE2, SIZE3, SIZE4}
+	// PAYLOAD
+	// 	The payload is the raw stream.
+
+	// Check container
+	info, err := client.InspectContainer(id)
+	if err != nil {
+		return errors.New("failed to inspect container: " + err.Error())
+	}
+	att.Tty = info.Config.Tty
+	//openStdin := info.Config.OpenStdin
+	//exitcode := info.State.ExitCode
+
+	// Init connection
+	connNet := client.URL.Scheme
+	if connNet == "http" {
+		connNet = "tcp"
+	}
+	conn, err := net.Dial(connNet, client.URL.Host)
+	if err != nil {
+		return err
+	}
+	cliConn := httputil.NewClientConn(conn, nil)
+	defer cliConn.Close()
+
+	// Request
+	// A request without these query parameters doesn't make sense.
+	// So they are not optional at the moment.
+	qp := "stream=1&stdout=1&stderr=1&stdin=1"
+	uri := fmt.Sprintf("/"+APIVERSION+"/containers/%s/attach?%s", id, qp)
+	req, err := http.NewRequest("POST", client.URL.String()+uri, nil)
+	if err != nil {
+		return err
+	}
+	cliConn.Do(req)
+
+	// Hijack the connection
+	hjConn, hjBuf := cliConn.Hijack()
+	defer hjConn.Close()
+
+	// Attach
+	if att.Tty == true {
+
+		// Tty implementation
+
+		if att.Stdin != nil {
+			go io.Copy(att.Stdout, hjBuf)
+
+			_, err := io.Copy(hjConn, att.Stdin)
+			if err != nil {
+				return errors.New("failed to send data (Stdin): " + err.Error())
+			}
+		} else if att.StdinPipe != nil {
+			_, err := io.Copy(hjConn, att.StdinPipe)
+			if err != nil {
+				return errors.New("failed to send data (StdinPipe): " + err.Error())
+			} else {
+				io.Copy(att.Stdout, hjBuf)
+			}
+		} else {
+			io.Copy(att.Stdout, hjBuf)
+		}
+	} else {
+
+		// Multiplexed implementation
+
+		return errors.New("Multiplexed implementation is still under development...")
+
+		// Header
+		bufHdr := make([]byte, 8)
+		n, err := hjBuf.Read(bufHdr)
+		if err != nil && err != io.EOF {
+			return err
+		} else if n != 8 {
+			return errors.New("invalid header: " + fmt.Sprintf("%d / %v", n, bufHdr))
+		}
+
+		// Frame 1
+		att.Tty = false
+		frame1Type := int(bufHdr[0]) // Stream type 0: stdin, 1: stdout, 2: stderr
+		frame1Size := int(binary.BigEndian.Uint32(bufHdr[4:]))
+
+		var _ = frame1Type
+		var _ = frame1Size
+
+		// TODO: Implement a loop for stream frames
+	}
+
 	return nil
 }
 
