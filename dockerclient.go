@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"sync/atomic"
@@ -25,22 +24,6 @@ func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	}
 	httpClient := newHTTPClient(u)
 	return &DockerClient{u, httpClient, 0}, nil
-}
-
-func newHTTPClient(u *url.URL) *http.Client {
-	httpTransport := &http.Transport{}
-	if u.Scheme == "unix" {
-		socketPath := u.Path
-		unixDial := func(proto string, addr string) (net.Conn, error) {
-			return net.Dial("unix", socketPath)
-		}
-		httpTransport.Dial = unixDial
-		// Override the main URL object so the HTTP lib won't complain
-		u.Scheme = "http"
-		u.Host = "unix.sock"
-	}
-	u.Path = ""
-	return &http.Client{Transport: httpTransport}
 }
 
 func (client *DockerClient) doRequest(method string, path string, body []byte) ([]byte, error) {
