@@ -242,3 +242,9 @@ func (client *DockerClient) Version() (*Version, error) {
 	}
 	return version, nil
 }
+
+// Get the Docker version.
+func (client *DockerClient) RemoveContainer(id string) error {
+	_, err := client.doRequest("DELETE", DockerBaseURL+"/containers/"+id, nil)
+	return err
+}
