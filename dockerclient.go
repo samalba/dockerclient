@@ -25,6 +25,7 @@ type DockerClient struct {
 // Return a new dockerclient for use in subsequent calls to the remote Docker API.
 type Callback func(*Event, ...interface{})
 
+// Return a new dockerclient for use in subsequent calls to the remote Docker API.
 func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
