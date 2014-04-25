@@ -15,12 +15,11 @@ type ContainerConfig struct {
 	StdinOnce       bool
 	Env             []string
 	Cmd             []string
-	Dns             []string
 	Image           string
-	VolumesFrom     string
 	WorkingDir      string
 	Entrypoint      []string
 	NetworkDisabled bool
+	ExposedPorts    map[string]interface{}
 }
 
 type HostConfig struct {
@@ -31,6 +30,9 @@ type HostConfig struct {
 	PortBindings    map[string][]PortBinding
 	Links           []string
 	PublishAllPorts bool
+	Dns             []string
+	DnsSearch       []string
+	VolumesFrom     []string
 }
 
 type PortBinding struct {
