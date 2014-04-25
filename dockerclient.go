@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
+	"log"
 	"net/http"
 	"net/url"
 	"sync/atomic"
-	"time"
 )
 
 type DockerClient struct {
@@ -18,6 +17,8 @@ type DockerClient struct {
 	monitorEvents int32
 }
 
+type Callback func(*Event, ...interface{})
+
 func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
@@ -25,22 +26,6 @@ func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	}
 	httpClient := newHTTPClient(u)
 	return &DockerClient{u, httpClient, 0}, nil
-}
-
-func newHTTPClient(u *url.URL) *http.Client {
-	httpTransport := &http.Transport{}
-	if u.Scheme == "unix" {
-		socketPath := u.Path
-		unixDial := func(proto string, addr string) (net.Conn, error) {
-			return net.Dial("unix", socketPath)
-		}
-		httpTransport.Dial = unixDial
-		// Override the main URL object so the HTTP lib won't complain
-		u.Scheme = "http"
-		u.Host = "unix.sock"
-	}
-	u.Path = ""
-	return &http.Client{Transport: httpTransport}
 }
 
 func (client *DockerClient) doRequest(method string, path string, body []byte) ([]byte, error) {
@@ -150,44 +135,29 @@ func (client *DockerClient) KillContainer(id string) error {
 	return nil
 }
 
-func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), args ...interface{}) {
+func (client *DockerClient) StartMonitorEvents(cb Callback, args ...interface{}) {
 	atomic.StoreInt32(&client.monitorEvents, 1)
-	wait := 100 * time.Millisecond
-	buffer := make([]byte, 4096)
-	var running int32 = 1
-	go func() {
-		for running > 0 {
-			running = atomic.LoadInt32(&client.monitorEvents)
-			if running == 0 {
-				break
-			}
-			uri := client.URL.String() + "/v1.10/events"
-			resp, err := client.HTTPClient.Get(uri)
-			if err != nil {
-				time.Sleep(wait)
-				continue
-			}
-			if resp.StatusCode >= 300 {
-				resp.Body.Close()
-				time.Sleep(wait)
-				continue
-			}
-			for {
-				nBytes, err := resp.Body.Read(buffer)
-				if err != nil {
-					resp.Body.Close()
-					time.Sleep(wait)
-					break
-				}
-				event := &Event{}
-				err = json.Unmarshal(buffer[:nBytes], event)
-				if err == nil {
-					cb(event, args...)
-				}
-			}
-			time.Sleep(wait)
+	go client.getEvents(cb, args...)
+}
+
+func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
+	uri := client.URL.String() + "/v1.10/events"
+	resp, err := client.HTTPClient.Get(uri)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer resp.Body.Close()
+
+	dec := json.NewDecoder(resp.Body)
+	for atomic.LoadInt32(&client.monitorEvents) > 0 {
+		var event *Event
+		if err := dec.Decode(&event); err != nil {
+			log.Println(err)
+			return
 		}
-	}()
+		cb(event, args...)
+	}
 }
 
 func (client *DockerClient) StopAllMonitorEvents() {
