@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,19 +13,25 @@ import (
 	"time"
 )
 
+const (
+	DockerBaseURL = "/v1.10"
+)
+
 type DockerClient struct {
 	URL           *url.URL
 	HTTPClient    *http.Client
+	Debug         bool
 	monitorEvents int32
 }
 
+// Return a new dockerclient for use in subsequent calls to the remote Docker API.
 func NewDockerClient(daemonUrl string) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
 		return nil, err
 	}
 	httpClient := newHTTPClient(u)
-	return &DockerClient{u, httpClient, 0}, nil
+	return &DockerClient{u, httpClient, false, 0}, nil
 }
 
 func newHTTPClient(u *url.URL) *http.Client {
@@ -44,10 +51,21 @@ func newHTTPClient(u *url.URL) *http.Client {
 }
 
 func (client *DockerClient) doRequest(method string, path string, body []byte) ([]byte, error) {
+	if client.Debug {
+		bodyStr := ""
+		if body != nil {
+			bodyStr = string(body)
+		}
+		log.Printf("doRequest: path, body:\n%s\n%s", path, bodyStr)
+	}
+
 	b := bytes.NewBuffer(body)
 	req, err := http.NewRequest(method, client.URL.String()+path, b)
 	if err != nil {
 		return nil, err
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
@@ -57,6 +75,8 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	} else if client.Debug {
+		log.Printf("doRequest: response data: %s\n", data)
 	}
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("%s: %s", resp.Status, data)
@@ -64,13 +84,14 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	return data, nil
 }
 
+// List all containers on the Docker host, including those stopped if 'all' is true.
 func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	argAll := 0
 	if all == true {
 		argAll = 1
 	}
 	args := fmt.Sprintf("?all=%d", argAll)
-	data, err := client.doRequest("GET", "/v1.10/containers/json"+args, nil)
+	data, err := client.doRequest("GET", DockerBaseURL+"/containers/json"+args, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +103,9 @@ func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	return ret, nil
 }
 
+// Return all information about a container by id.
 func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) {
-	uri := fmt.Sprintf("/v1.10/containers/%s/json", id)
+	uri := fmt.Sprintf(DockerBaseURL+"/containers/%s/json", id)
 	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -96,12 +118,14 @@ func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) 
 	return info, nil
 }
 
+// Create a container based on the provided CongainerConfig.
 func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, error) {
 	data, err := json.Marshal(config)
 	if err != nil {
 		return "", err
 	}
-	uri := "/v1.10/containers/create"
+
+	uri := DockerBaseURL + "/containers/create"
 	data, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return "", err
@@ -114,17 +138,24 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 	return result.Id, nil
 }
 
-func (client *DockerClient) StartContainer(id string) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/start", id)
-	_, err := client.doRequest("POST", uri, nil)
+// Start a container with HostConfig 'host.'
+func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	uri := fmt.Sprintf(DockerBaseURL+"/containers/%s/start", id)
+	_, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// Stop a container by id with timeout.
 func (client *DockerClient) StopContainer(id string, timeout int) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/stop?t=%d", id, timeout)
+	uri := fmt.Sprintf(DockerBaseURL+"/containers/%s/stop?t=%d", id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -132,8 +163,9 @@ func (client *DockerClient) StopContainer(id string, timeout int) error {
 	return nil
 }
 
+// Restart a container by id with timeout.
 func (client *DockerClient) RestartContainer(id string, timeout int) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/restart?t=%d", id, timeout)
+	uri := fmt.Sprintf(DockerBaseURL+"/containers/%s/restart?t=%d", id, timeout)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -141,8 +173,9 @@ func (client *DockerClient) RestartContainer(id string, timeout int) error {
 	return nil
 }
 
+// Kill container by id.
 func (client *DockerClient) KillContainer(id string) error {
-	uri := fmt.Sprintf("/v1.10/containers/%s/kill", id)
+	uri := fmt.Sprintf(DockerBaseURL+"/containers/%s/kill", id)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err
@@ -150,6 +183,7 @@ func (client *DockerClient) KillContainer(id string) error {
 	return nil
 }
 
+// Start monitoring the Docker service for events, calling the given callback for each.
 func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), args ...interface{}) {
 	atomic.StoreInt32(&client.monitorEvents, 1)
 	wait := 100 * time.Millisecond
@@ -161,7 +195,7 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), 
 			if running == 0 {
 				break
 			}
-			uri := client.URL.String() + "/v1.10/events"
+			uri := client.URL.String() + DockerBaseURL + "/events"
 			resp, err := client.HTTPClient.Get(uri)
 			if err != nil {
 				time.Sleep(wait)
@@ -190,12 +224,14 @@ func (client *DockerClient) StartMonitorEvents(cb func(*Event, ...interface{}), 
 	}()
 }
 
+// Stop monitoring the Docker service for events.
 func (client *DockerClient) StopAllMonitorEvents() {
 	atomic.StoreInt32(&client.monitorEvents, 0)
 }
 
+// Get the Docker version.
 func (client *DockerClient) Version() (*Version, error) {
-	data, err := client.doRequest("GET", "/v1.10/version", nil)
+	data, err := client.doRequest("GET", DockerBaseURL+"/version", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -205,4 +241,10 @@ func (client *DockerClient) Version() (*Version, error) {
 		return nil, err
 	}
 	return version, nil
+}
+
+// Get the Docker version.
+func (client *DockerClient) RemoveContainer(id string) error {
+	_, err := client.doRequest("DELETE", DockerBaseURL+"/containers/"+id, nil)
+	return err
 }
