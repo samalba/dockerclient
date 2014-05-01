@@ -53,6 +53,9 @@ type ContainerInfo struct {
 		Ghost     bool
 	}
 	Image           string
+	Name            string
+	Driver          string
+	ExecDriver      string
 	NetworkSettings struct {
 		IpAddress   string
 		IpPrefixLen int
