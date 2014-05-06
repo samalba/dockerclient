@@ -2,8 +2,11 @@ package dockerclient
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,6 +23,29 @@ type DockerClient struct {
 	HTTPClient    *http.Client
 	Debug         bool
 	monitorEvents int32
+}
+
+// Status info the flows from things like 'pull' requests.
+type jsonStatusInfo struct {
+	Status   string `json:"status,omitempty"`
+	Progress string `json:"progress,omitempty"`
+	Error    string `json:"error,omitempty"`
+	Stream   string `json:"stream,omitempty"`
+}
+
+// AuthConfiguration: auth options for Docker image/registry api.
+type AuthConfiguration struct {
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+	Email    string `json:"email,omitempty"`
+}
+
+// PullImageParams: params available for pulling an image from a registry.
+type PullImageParams struct {
+	FromImage    string    `qparam:"fromImage"`
+	Registry     string    `qparam:"registry"`
+	Tag          string    `qparam:"tag"`
+	OutputStream io.Writer `qparam:"-"`
 }
 
 // Return a new dockerclient for use in subsequent calls to the remote Docker API.
@@ -67,6 +93,59 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 		return nil, fmt.Errorf("%s: %s", resp.Status, data)
 	}
 	return data, nil
+}
+
+func (client *DockerClient) doStream(method, path string, headers map[string]string,
+	in io.Reader, out io.Writer) error {
+	if (method == "POST" || method == "PUT") && in == nil {
+		in = bytes.NewReader(nil)
+	}
+	req, err := http.NewRequest(method, client.URL.String()+path, in)
+	if err != nil {
+		return err
+	}
+	for key, val := range headers {
+		req.Header.Set(key, val)
+	}
+	if out == nil {
+		out = ioutil.Discard
+	}
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		return NewDockerClientError(resp.StatusCode, string(body))
+	}
+	if resp.Header.Get("Content-Type") == "application/json" {
+		dec := json.NewDecoder(resp.Body)
+		for {
+			var msg jsonStatusInfo
+			if err := dec.Decode(&msg); err == io.EOF {
+				break
+			} else if err != nil {
+				return err
+			}
+			if msg.Stream != "" {
+				fmt.Fprint(out, msg.Stream)
+			} else if msg.Progress != "" {
+				fmt.Fprintf(out, "%s %s\r", msg.Status, msg.Progress)
+			} else if msg.Error != "" {
+				return errors.New(msg.Error)
+			}
+			fmt.Fprintln(out, msg.Status)
+		}
+	} else {
+		if _, err := io.Copy(out, resp.Body); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // List all containers on the Docker host, including those stopped if 'all' is true.
@@ -217,4 +296,26 @@ func (client *DockerClient) Version() (*Version, error) {
 func (client *DockerClient) RemoveContainer(id string) error {
 	_, err := client.doRequest("DELETE", DockerBaseURL+"/containers/"+id, nil)
 	return err
+}
+
+//-------------------------------------------------------
+// Pull an image from a remote Docker index and log progress to output stream.
+func (client *DockerClient) PullImage(params *PullImageParams, auth *AuthConfiguration) error {
+	if params.Registry == "" {
+		return errors.New("Registry cannot be empty")
+	}
+
+	var h = make(map[string]string)
+	if auth != nil {
+		var buf bytes.Buffer
+		json.NewEncoder(&buf).Encode(auth)
+		h["X-Registry-Auth"] = base64.URLEncoding.EncodeToString(buf.Bytes())
+	}
+
+	qparams, error := queryParams(&params)
+	if error != nil {
+		return error
+	}
+
+	return client.doStream("POST", "/images/create?"+qparams, h, nil, params.OutputStream)
 }
