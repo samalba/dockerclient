@@ -206,3 +206,13 @@ func (client *DockerClient) Version() (*Version, error) {
 	}
 	return version, nil
 }
+
+func (client *DockerClient) PullImage(name, tag string) error {
+	v := url.Values{}
+	v.Set("fromImage", name)
+	if tag != "" {
+		v.Set("tag", tag)
+	}
+	_, err := client.doRequest("POST", "/v1.10/images/create?="+v.Encode(), nil)
+	return err
+}
