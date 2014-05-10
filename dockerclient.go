@@ -186,3 +186,8 @@ func (client *DockerClient) PullImage(name, tag string) error {
 	_, err := client.doRequest("POST", "/v1.10/images/create?="+v.Encode(), nil)
 	return err
 }
+
+func (client *DockerClient) RemoveContainer(id string) error {
+	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/containers/%s", id), nil)
+	return err
+}
