@@ -39,6 +39,7 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
