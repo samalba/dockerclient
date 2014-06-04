@@ -99,9 +99,13 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 	return result.Id, nil
 }
 
-func (client *DockerClient) StartContainer(id string) error {
+func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
 	uri := fmt.Sprintf("/v1.10/containers/%s/start", id)
-	_, err := client.doRequest("POST", uri, nil)
+	_, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return err
 	}
