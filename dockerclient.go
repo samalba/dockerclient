@@ -3,12 +3,17 @@ package dockerclient
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"sync/atomic"
+)
+
+var (
+	ErrNotFound = errors.New("Not found")
 )
 
 type DockerClient struct {
@@ -42,6 +47,9 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode == 404 {
+		return nil, ErrNotFound
 	}
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("%s: %s", resp.Status, data)
