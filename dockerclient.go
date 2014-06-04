@@ -89,12 +89,18 @@ func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) 
 	return info, nil
 }
 
-func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, error) {
+func (client *DockerClient) CreateContainer(config *ContainerConfig, name string) (string, error) {
 	data, err := json.Marshal(config)
 	if err != nil {
 		return "", err
 	}
 	uri := "/v1.10/containers/create"
+
+	if name != "" {
+		v := url.Values{}
+		v.Set("name", name)
+		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
+	}
 	data, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return "", err
