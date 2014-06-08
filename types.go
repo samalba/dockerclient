@@ -43,6 +43,7 @@ type ContainerInfo struct {
 	Id     string
 	Create string
 	Path   string
+	Name   string
 	Args   []string
 	Config *ContainerConfig
 	State  struct {
