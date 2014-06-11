@@ -3,12 +3,17 @@ package dockerclient
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"sync/atomic"
+)
+
+var (
+	ErrNotFound = errors.New("Not found")
 )
 
 type DockerClient struct {
@@ -34,6 +39,7 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Add("Content-Type", "application/json")
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -42,6 +48,9 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode == 404 {
+		return nil, ErrNotFound
 	}
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("%s: %s", resp.Status, data)
@@ -81,12 +90,18 @@ func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) 
 	return info, nil
 }
 
-func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, error) {
+func (client *DockerClient) CreateContainer(config *ContainerConfig, name string) (string, error) {
 	data, err := json.Marshal(config)
 	if err != nil {
 		return "", err
 	}
 	uri := "/v1.10/containers/create"
+
+	if name != "" {
+		v := url.Values{}
+		v.Set("name", name)
+		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
+	}
 	data, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return "", err
@@ -99,9 +114,13 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig) (string, er
 	return result.Id, nil
 }
 
-func (client *DockerClient) StartContainer(id string) error {
+func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
 	uri := fmt.Sprintf("/v1.10/containers/%s/start", id)
-	_, err := client.doRequest("POST", uri, nil)
+	_, err = client.doRequest("POST", uri, data)
 	if err != nil {
 		return err
 	}
@@ -183,7 +202,7 @@ func (client *DockerClient) PullImage(name, tag string) error {
 	if tag != "" {
 		v.Set("tag", tag)
 	}
-	_, err := client.doRequest("POST", "/v1.10/images/create?="+v.Encode(), nil)
+	_, err := client.doRequest("POST", "/v1.10/images/create?"+v.Encode(), nil)
 	return err
 }
 
