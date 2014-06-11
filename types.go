@@ -47,7 +47,7 @@ type PortBinding struct {
 
 type ContainerInfo struct {
 	Id     string
-	Create string
+	Created string
 	Path   string
 	Name   string
 	Args   []string
