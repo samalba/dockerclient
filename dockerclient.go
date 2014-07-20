@@ -30,6 +30,9 @@ func NewDockerClient(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, er
 	if err != nil {
 		return nil, err
 	}
+	if u.Scheme == "tcp" {
+		u.Scheme = "http"
+	}
 	httpClient := newHTTPClient(u, tlsConfig)
 	return &DockerClient{u, httpClient, 0}, nil
 }
