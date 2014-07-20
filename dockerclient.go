@@ -2,6 +2,7 @@ package dockerclient
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,12 +25,12 @@ type DockerClient struct {
 
 type Callback func(*Event, ...interface{})
 
-func NewDockerClient(daemonUrl string) (*DockerClient, error) {
+func NewDockerClient(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
 		return nil, err
 	}
-	httpClient := newHTTPClient(u)
+	httpClient := newHTTPClient(u, tlsConfig)
 	return &DockerClient{u, httpClient, 0}, nil
 }
 
