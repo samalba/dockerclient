@@ -232,7 +232,11 @@ func (client *DockerClient) ListImages() ([]*Image, error) {
 func (client *DockerClient) Commit(cid string) (string, error) {
 	v := url.Values{}
 	v.Set("container", cid)
-	data, err := client.doRequest("POST", "/v1.10/commit?"+v.Encode(), nil)
+	config, err := json.Marshal(&HostConfig{})
+	if err != nil {
+		return "", err
+	}
+	data, err := client.doRequest("POST", "/v1.10/commit?"+v.Encode(), config)
 	if err != nil {
 		return "", err
 	}
