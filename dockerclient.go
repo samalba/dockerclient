@@ -228,3 +228,19 @@ func (client *DockerClient) ListImages() ([]*Image, error) {
 
 	return images, nil
 }
+
+func (client *DockerClient) Commit(cid string) (string, error) {
+	v := url.Values{}
+	v.Set("container", cid)
+	data, err := client.doRequest("POST", "/v1.10/commit?"+v.Encode(), nil)
+	if err != nil {
+		return "", err
+	}
+
+	var img Image
+	if err := json.Unmarshal(data, &img); err != nil {
+		return "", err
+	}
+
+	return img.Id, nil
+}
