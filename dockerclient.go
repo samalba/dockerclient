@@ -214,3 +214,17 @@ func (client *DockerClient) RemoveContainer(id string) error {
 	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/containers/%s", id), nil)
 	return err
 }
+
+func (client *DockerClient) ListImages() ([]*Image, error) {
+	data, err := client.doRequest("GET", "/v1.10/images/json", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var images []*Image
+	if err := json.Unmarshal(data, &images); err != nil {
+		return nil, err
+	}
+
+	return images, nil
+}

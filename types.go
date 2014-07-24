@@ -46,13 +46,13 @@ type PortBinding struct {
 }
 
 type ContainerInfo struct {
-	Id     string
+	Id      string
 	Created string
-	Path   string
-	Name   string
-	Args   []string
-	Config *ContainerConfig
-	State  struct {
+	Path    string
+	Name    string
+	Args    []string
+	Config  *ContainerConfig
+	State   struct {
 		Running   bool
 		Pid       int
 		ExitCode  int
@@ -107,4 +107,13 @@ type Version struct {
 type RespContainersCreate struct {
 	Id       string
 	Warnings []string
+}
+
+type Image struct {
+	Created     int64
+	Id          string
+	ParentId    string
+	RepoTags    []string
+	Size        int64
+	VirtualSize int64
 }
