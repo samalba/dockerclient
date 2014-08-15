@@ -38,6 +38,12 @@ type HostConfig struct {
 	DnsSearch       []string
 	VolumesFrom     []string
 	NetworkMode     string
+	RestartPolicy   RestartPolicy
+}
+
+type RestartPolicy struct {
+	Name              string
+	MaximumRetryCount int
 }
 
 type PortBinding struct {
