@@ -215,6 +215,11 @@ func (client *DockerClient) RemoveContainer(id string) error {
 	return err
 }
 
+func (client *DockerClient) RemoveImage(id string) error {
+	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/images/%s", id), nil)
+	return err
+}
+
 func (client *DockerClient) ListImages() ([]*Image, error) {
 	data, err := client.doRequest("GET", "/v1.10/images/json", nil)
 	if err != nil {
