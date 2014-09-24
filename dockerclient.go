@@ -228,3 +228,8 @@ func (client *DockerClient) ListImages() ([]*Image, error) {
 
 	return images, nil
 }
+
+func (client *DockerClient) RemoveImage(name string) error {
+	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/images/%s", name), nil)
+	return err
+}
