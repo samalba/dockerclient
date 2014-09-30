@@ -1,5 +1,7 @@
 package dockerclient
 
+import "time"
+
 type ContainerConfig struct {
 	Hostname        string
 	Domainname      string
@@ -59,11 +61,14 @@ type ContainerInfo struct {
 	Args    []string
 	Config  *ContainerConfig
 	State   struct {
-		Running   bool
-		Pid       int
-		ExitCode  int
-		StartedAt string
-		Ghost     bool
+		Running    bool
+		Paused     bool
+		Restarting bool
+		Pid        int
+		ExitCode   int
+		StartedAt  time.Time
+		FinishedAt time.Time
+		Ghost      bool
 	}
 	Image           string
 	NetworkSettings struct {

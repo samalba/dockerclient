@@ -25,6 +25,16 @@ type DockerClient struct {
 
 type Callback func(*Event, ...interface{})
 
+type Error struct {
+	StatusCode int
+	Status     string
+	msg        string
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("%s: %s", e.Status, e.msg)
+}
+
 func NewDockerClient(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
@@ -57,7 +67,7 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 		return nil, ErrNotFound
 	}
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("%s: %s", resp.Status, data)
+		return nil, Error{StatusCode: resp.StatusCode, Status: resp.Status, msg: string(data)}
 	}
 	return data, nil
 }
@@ -227,4 +237,9 @@ func (client *DockerClient) ListImages() ([]*Image, error) {
 	}
 
 	return images, nil
+}
+
+func (client *DockerClient) RemoveImage(name string) error {
+	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/images/%s", name), nil)
+	return err
 }
