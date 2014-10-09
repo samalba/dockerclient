@@ -220,8 +220,14 @@ func (client *DockerClient) PullImage(name, tag string) error {
 	return err
 }
 
-func (client *DockerClient) RemoveContainer(id string) error {
-	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/containers/%s", id), nil)
+func (client *DockerClient) RemoveContainer(id string, force bool) error {
+	argForce := 0
+	if force == true {
+		argForce = 1
+	}
+	args := fmt.Sprintf("force=%d", argForce)
+
+	_, err := client.doRequest("DELETE", fmt.Sprintf("/v1.10/containers/%s?%s", id, args), nil)
 	return err
 }
 
