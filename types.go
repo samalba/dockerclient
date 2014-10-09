@@ -26,6 +26,9 @@ type ContainerConfig struct {
 	Entrypoint      []string
 	NetworkDisabled bool
 	OnBuild         []string
+
+	// This is used only by the create command
+	HostConfig HostConfig
 }
 
 type HostConfig struct {
@@ -85,6 +88,7 @@ type ContainerInfo struct {
 }
 
 type Port struct {
+	IP          string
 	PrivatePort int
 	PublicPort  int
 	Type        string
