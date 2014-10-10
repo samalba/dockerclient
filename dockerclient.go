@@ -177,7 +177,7 @@ func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
 	uri := client.URL.String() + "/v1.10/events"
 	resp, err := client.HTTPClient.Get(uri)
 	if err != nil {
-		log.Println(err)
+		log.Printf("GET %s failed: %v", uri, err)
 		return
 	}
 	defer resp.Body.Close()
@@ -186,7 +186,7 @@ func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
 	for atomic.LoadInt32(&client.monitorEvents) > 0 {
 		var event *Event
 		if err := dec.Decode(&event); err != nil {
-			log.Println(err)
+			log.Printf("Event decoding failed: %v", err)
 			return
 		}
 		cb(event, args...)
