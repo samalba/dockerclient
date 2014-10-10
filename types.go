@@ -132,3 +132,13 @@ type Image struct {
 	Size        int64
 	VirtualSize int64
 }
+
+type Info struct {
+	Containers      int
+	Driver          string
+	DriverStatus    [][]string
+	ExecutionDriver string
+	Images          int
+	KernelVersion   string
+	OperatingSystem string
+}

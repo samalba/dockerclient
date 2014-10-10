@@ -72,6 +72,19 @@ func (client *DockerClient) doRequest(method string, path string, body []byte) (
 	return data, nil
 }
 
+func (client *DockerClient) Info() (*Info, error) {
+	data, err := client.doRequest("GET", "/v1.10/info", nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := &Info{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 func (client *DockerClient) ListContainers(all bool) ([]Container, error) {
 	argAll := 0
 	if all == true {
