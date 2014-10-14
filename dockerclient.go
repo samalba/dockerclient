@@ -141,8 +141,15 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig, name string
 	return result.Id, nil
 }
 
-func (client *DockerClient) ContainerLogs(id string) ([]byte, error) {
-	uri := fmt.Sprintf("/v1.10/containers/%s/logs?stderr=1&stdout=1", id)
+func (client *DockerClient) ContainerLogs(id string, stdout bool, stderr bool) ([]byte, error) {
+	v := url.Values{}
+	if stdout {
+		v.Add("stdout", "1")
+	}
+	if stderr {
+		v.Add("stderr", "1")
+	}
+	uri := fmt.Sprintf("/v1.10/containers/%s/logs?%s", id, v.Encode())
 	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
