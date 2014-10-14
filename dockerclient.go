@@ -141,6 +141,15 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig, name string
 	return result.Id, nil
 }
 
+func (client *DockerClient) ContainerLogs(id string) ([]byte, error) {
+	uri := fmt.Sprintf("/v1.10/containers/%s/logs?stderr=1&stdout=1", id)
+	data, err := client.doRequest("GET", uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
 	data, err := json.Marshal(config)
 	if err != nil {
