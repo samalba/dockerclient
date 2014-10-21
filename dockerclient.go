@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -139,6 +140,27 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig, name string
 		return "", err
 	}
 	return result.Id, nil
+}
+
+func (client *DockerClient) ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error) {
+	v := url.Values{}
+	if stdout {
+		v.Add("stdout", "1")
+	}
+	if stderr {
+		v.Add("stderr", "1")
+	}
+	uri := fmt.Sprintf("/v1.10/containers/%s/logs?%s", id, v.Encode())
+	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
 }
 
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
