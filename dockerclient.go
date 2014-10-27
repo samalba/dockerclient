@@ -36,7 +36,11 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%s: %s", e.Status, e.msg)
 }
 
-func NewDockerClient(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, error) {
+func NewDockerClient(daemonUrl string) (*DockerClient, error) {
+	return NewDockerClientTLS(daemonUrl, nil)
+}
+
+func NewDockerClientTLS(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
 		return nil, err
