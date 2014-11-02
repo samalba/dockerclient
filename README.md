@@ -2,7 +2,7 @@ Docker client library in Go
 ===========================
 [![GoDoc](http://godoc.org/github.com/samalba/dockerclient?status.png)](http://godoc.org/github.com/samalba/dockerclient)
 
-This library supports few API calls but it will get extended over time.
+Well maintained docker client library.
 
 Example:
 
