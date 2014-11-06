@@ -141,4 +141,6 @@ type Info struct {
 	Images          int
 	KernelVersion   string
 	OperatingSystem string
+	NCPU            int
+	MemTotal        int64
 }
