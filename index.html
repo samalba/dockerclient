@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Dockerclient by samalba</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Dockerclient</h1>
+          <h2>Docker client library in Go</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/samalba/dockerclient/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/samalba/dockerclient/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/samalba/dockerclient" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a id="docker-client-library-in-go" class="anchor" href="#docker-client-library-in-go" aria-hidden="true"><span class="octicon octicon-link"></span></a>Docker client library in Go</h1>
+
+<p><a href="http://godoc.org/github.com/samalba/dockerclient"><img src="http://godoc.org/github.com/samalba/dockerclient?status.png" alt="GoDoc"></a></p>
+
+<p>Well maintained docker client library.</p>
+
+<p>Example:</p>
+
+<div class="highlight highlight-go"><pre><span class="k">package</span> main
+
+<span class="k">import</span> (
+    <span class="s2">"github.com/samalba/dockerclient"</span>
+    <span class="s2">"log"</span>
+    <span class="s2">"time"</span>
+)
+
+<span class="c1">// Callback used to listen to Docker's events</span>
+<span class="k">func</span> <span class="nf">eventCallback</span>(<span class="nv">event</span> *<span class="nv">dockerclient</span>.<span class="nv">Event</span>, <span class="nv">args</span> ...<span class="nv">interface</span>{}) {
+    log.<span class="nf">Printf</span>(<span class="s2">"Received event: <span class="no">%#v</span><span class="sc">\n</span>"</span>, *event)
+}
+
+<span class="k">func</span> <span class="nf">main</span>() {
+    <span class="c1">// Init the client</span>
+    <span class="nv">docker</span>, <span class="nv">_</span> <span class="o">:=</span> dockerclient.<span class="nf">NewDockerClient</span>(<span class="s2">"unix:///var/run/docker.sock"</span>, <span class="kc">nil</span>)
+
+    <span class="c1">// Get only running containers</span>
+    <span class="nv">containers</span>, <span class="nv">err</span> <span class="o">:=</span> docker.<span class="nf">ListContainers</span>(<span class="kc">false</span>)
+    <span class="k">if</span> err != <span class="kc">nil</span> {
+        log.<span class="nf">Fatal</span>(err)
+    }
+    <span class="k">for</span> <span class="nv">_</span>, <span class="nv">c</span> <span class="o">:=</span> <span class="k">range</span> containers {
+        log.<span class="nf">Println</span>(c.<span class="nv">Id</span>, c.<span class="nv">Names</span>)
+    }
+
+    <span class="c1">// Inspect the first container returned</span>
+    <span class="k">if</span> <span class="nf">len</span>(containers) &gt; <span class="m">0</span> {
+        <span class="nv">id</span> <span class="o">:=</span> containers[<span class="m">0</span>].<span class="nv">Id</span>
+        <span class="nv">info</span>, <span class="nv">_</span> <span class="o">:=</span> docker.<span class="nf">InspectContainer</span>(id)
+        log.<span class="nf">Println</span>(info)
+    }
+
+    <span class="c1">// Create a container</span>
+    <span class="nv">containerConfig</span> <span class="o">:=</span> &amp;dockerclient.<span class="nv">ContainerConfig</span>{Image: <span class="s2">"ubuntu:12.04"</span>, Cmd: []<span class="kt">string</span>{<span class="s2">"bash"</span>}}
+    <span class="nv">containerId</span>, <span class="nv">err</span> <span class="o">:=</span> docker.<span class="nf">CreateContainer</span>(containerConfig)
+    <span class="k">if</span> err != <span class="kc">nil</span> {
+        log.<span class="nf">Fatal</span>(err)
+    }
+
+    <span class="c1">// Start the container</span>
+    err = docker.<span class="nf">StartContainer</span>(containerId)
+    <span class="k">if</span> err != <span class="kc">nil</span> {
+        log.<span class="nf">Fatal</span>(err)
+    }
+
+    <span class="c1">// Stop the container (with 5 seconds timeout)</span>
+    docker.<span class="nf">StopContainer</span>(containerId, <span class="m">5</span>)
+
+    <span class="c1">// Listen to events</span>
+    docker.<span class="nf">StartMonitorEvents</span>(eventCallback)
+    time.<span class="nf">Sleep</span>(<span class="m">3600</span> * time.<span class="nv">Second</span>)
+}</pre></div>
+        </section>
+
+        <footer>
+          Dockerclient is maintained by <a href="https://github.com/samalba">samalba</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
