@@ -1,8 +1,8 @@
 package dockerclient
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
@@ -15,7 +15,7 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
 	t.Fatal(message)
 }
 
-func testDockerClient(t *testing.T) *DockerClient {
+func testDockerClient(t *testing.T) DockerClient {
 	client, err := NewDockerClient(testHTTPServer.URL, nil)
 	if err != nil {
 		t.Fatal("Cannot init the docker client")
