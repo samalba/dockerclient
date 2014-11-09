@@ -6,88 +6,88 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type DockerClientMock struct {
+type MockClient struct {
 	mock.Mock
 }
 
-func NewDockerClientMock() *DockerClientMock {
-	return &DockerClientMock{}
+func NewMockClient() *MockClient {
+	return &MockClient{}
 }
 
-func (client *DockerClientMock) Info() (*Info, error) {
+func (client *MockClient) Info() (*Info, error) {
 	args := client.Mock.Called()
 	return args.Get(0).(*Info), args.Error(1)
 }
 
-func (client *DockerClientMock) ListContainers(all bool) ([]Container, error) {
+func (client *MockClient) ListContainers(all bool) ([]Container, error) {
 	args := client.Mock.Called(all)
 	return args.Get(0).([]Container), args.Error(1)
 }
 
-func (client *DockerClientMock) InspectContainer(id string) (*ContainerInfo, error) {
+func (client *MockClient) InspectContainer(id string) (*ContainerInfo, error) {
 	args := client.Mock.Called(id)
 	return args.Get(0).(*ContainerInfo), args.Error(1)
 }
 
-func (client *DockerClientMock) CreateContainer(config *ContainerConfig, name string) (string, error) {
+func (client *MockClient) CreateContainer(config *ContainerConfig, name string) (string, error) {
 	args := client.Mock.Called(config, name)
 	return args.String(0), args.Error(1)
 }
 
-func (client *DockerClientMock) ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error) {
+func (client *MockClient) ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error) {
 	args := client.Mock.Called(id, stdout, stderr)
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
-func (client *DockerClientMock) StartContainer(id string, config *HostConfig) error {
+func (client *MockClient) StartContainer(id string, config *HostConfig) error {
 	args := client.Mock.Called(id, config)
 	return args.Error(0)
 }
 
-func (client *DockerClientMock) StopContainer(id string, timeout int) error {
+func (client *MockClient) StopContainer(id string, timeout int) error {
 	args := client.Mock.Called(id, timeout)
 	return args.Error(0)
 }
 
-func (client *DockerClientMock) RestartContainer(id string, timeout int) error {
+func (client *MockClient) RestartContainer(id string, timeout int) error {
 	args := client.Mock.Called(id, timeout)
 	return args.Error(0)
 }
 
-func (client *DockerClientMock) KillContainer(id string) error {
+func (client *MockClient) KillContainer(id string) error {
 	args := client.Mock.Called(id)
 	return args.Error(0)
 }
 
-func (client *DockerClientMock) StartMonitorEvents(cb Callback, args ...interface{}) {
+func (client *MockClient) StartMonitorEvents(cb Callback, args ...interface{}) {
 	client.Mock.Called(cb, args)
 }
 
-func (client *DockerClientMock) StopAllMonitorEvents() {
+func (client *MockClient) StopAllMonitorEvents() {
 	client.Mock.Called()
 }
 
-func (client *DockerClientMock) Version() (*Version, error) {
+func (client *MockClient) Version() (*Version, error) {
 	args := client.Mock.Called()
 	return args.Get(0).(*Version), args.Error(1)
 }
 
-func (client *DockerClientMock) PullImage(name, tag string) error {
+func (client *MockClient) PullImage(name, tag string) error {
 	args := client.Mock.Called(name, tag)
 	return args.Error(0)
 }
 
-func (client *DockerClientMock) RemoveContainer(id string, force bool) error {
+func (client *MockClient) RemoveContainer(id string, force bool) error {
 	args := client.Mock.Called(id, force)
 	return args.Error(0)
 }
 
-func (client *DockerClientMock) ListImages() ([]*Image, error) {
+func (client *MockClient) ListImages() ([]*Image, error) {
 	args := client.Mock.Called()
 	return args.Get(0).([]*Image), args.Error(1)
 }
 
-func (client *DockerClientMock) RemoveImage(name string) error {
+func (client *MockClient) RemoveImage(name string) error {
 	args := client.Mock.Called(name)
 	return args.Error(0)
 }

@@ -6,7 +6,7 @@ import (
 
 type Callback func(*Event, ...interface{})
 
-type DockerClient interface {
+type Client interface {
 	Info() (*Info, error)
 	ListContainers(all bool) ([]Container, error)
 	InspectContainer(id string) (*ContainerInfo, error)

@@ -5,7 +5,7 @@ import (
 )
 
 func TestMock(t *testing.T) {
-	mock := NewDockerClientMock()
+	mock := NewMockClient()
 	mock.On("Version").Return(&Version{Version: "foo"}, nil).Once()
 
 	v, err := mock.Version()
