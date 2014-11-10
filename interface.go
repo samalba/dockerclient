@@ -11,7 +11,7 @@ type Client interface {
 	ListContainers(all, size bool) ([]Container, error)
 	InspectContainer(id string) (*ContainerInfo, error)
 	CreateContainer(config *ContainerConfig, name string) (string, error)
-	ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error)
+	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error

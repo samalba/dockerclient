@@ -46,6 +46,14 @@ type HostConfig struct {
 	RestartPolicy   RestartPolicy
 }
 
+type LogOptions struct {
+	Follow     bool
+	Stdout     bool
+	Stderr     bool
+	Timestamps bool
+	Tail       int
+}
+
 type RestartPolicy struct {
 	Name              string
 	MaximumRetryCount int
