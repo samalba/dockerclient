@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	APIVersion = "v1.10"
+	APIVersion = "v1.15"
 )
 
 var (
@@ -252,12 +252,9 @@ func (client *DockerClient) Version() (*Version, error) {
 	return version, nil
 }
 
-func (client *DockerClient) PullImage(name, tag string) error {
+func (client *DockerClient) PullImage(name string) error {
 	v := url.Values{}
 	v.Set("fromImage", name)
-	if tag != "" {
-		v.Set("tag", tag)
-	}
 	uri := fmt.Sprintf("/%s/images/create?%s", APIVersion, v.Encode())
 	_, err := client.doRequest("POST", uri, nil)
 	return err
