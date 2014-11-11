@@ -19,7 +19,7 @@ type Client interface {
 	StartMonitorEvents(cb Callback, args ...interface{})
 	StopAllMonitorEvents()
 	Version() (*Version, error)
-	PullImage(name, tag string) error
+	PullImage(name string) error
 	RemoveContainer(id string, force bool) error
 	ListImages() ([]*Image, error)
 	RemoveImage(name string) error

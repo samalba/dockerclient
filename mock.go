@@ -72,8 +72,8 @@ func (client *MockClient) Version() (*Version, error) {
 	return args.Get(0).(*Version), args.Error(1)
 }
 
-func (client *MockClient) PullImage(name, tag string) error {
-	args := client.Mock.Called(name, tag)
+func (client *MockClient) PullImage(name string) error {
+	args := client.Mock.Called(name)
 	return args.Error(0)
 }
 
