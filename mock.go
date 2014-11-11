@@ -19,8 +19,8 @@ func (client *MockClient) Info() (*Info, error) {
 	return args.Get(0).(*Info), args.Error(1)
 }
 
-func (client *MockClient) ListContainers(all bool) ([]Container, error) {
-	args := client.Mock.Called(all)
+func (client *MockClient) ListContainers(all bool, size bool) ([]Container, error) {
+	args := client.Mock.Called(all, size)
 	return args.Get(0).([]Container), args.Error(1)
 }
 

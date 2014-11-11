@@ -16,6 +16,7 @@ func init() {
 	r := mux.NewRouter()
 	baseURL := "/" + APIVersion
 	r.HandleFunc(baseURL+"/info", handlerGetInfo).Methods("GET")
+	r.HandleFunc(baseURL+"/containers/json", handlerGetContainers).Methods("GET")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -57,5 +58,56 @@ func handlerGetInfo(w http.ResponseWriter, r *http.Request) {
 	 "NGoroutines": 11,
 	 "OperatingSystem": "Boot2Docker 1.3.1 (TCL 5.4); master : a083df4 - Thu Jan 01 00:00:00 UTC 1970",
 	 "SwapLimit": 1}`
+	w.Write([]byte(body))
+}
+
+func handlerGetContainers(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 200, "containers")
+	body := `[
+          {
+            "Status": "Up 39 seconds",
+            "Ports": [
+              {
+                "Type": "tcp",
+                "PublicPort": 49163,
+                "PrivatePort": 8080,
+                "IP": "0.0.0.0"
+              }
+            ],
+            "Names": [
+              "/trusting_heisenberg"
+            ],
+            "Image": "foo:latest",
+            "Id": "332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688ce",
+            "Created": 1415720105,
+            "Command": "/bin/go-run"
+          }
+        ]`
+	if v, ok := r.URL.Query()["size"]; ok {
+		if v[0] == "1" {
+			body = `[
+          {
+            "Status": "Up 39 seconds",
+            "Ports": [
+              {
+                "Type": "tcp",
+                "PublicPort": 49163,
+                "PrivatePort": 8080,
+                "IP": "0.0.0.0"
+              }
+            ],
+            "Names": [
+              "/trusting_heisenberg"
+            ],
+            "Image": "foo:latest",
+            "Id": "332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688ce",
+            "Created": 1415720105,
+            "SizeRootFs": 12345,
+            "SizeRW": 123,
+            "Command": "/bin/go-run"
+          }
+        ]`
+		}
+	}
 	w.Write([]byte(body))
 }
