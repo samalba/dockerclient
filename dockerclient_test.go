@@ -32,3 +32,25 @@ func TestInfo(t *testing.T) {
 	assertEqual(t, info.Images, 1, "")
 	assertEqual(t, info.Containers, 2, "")
 }
+
+func TestListContainers(t *testing.T) {
+	client := testDockerClient(t)
+	containers, err := client.ListContainers(true, false)
+	if err != nil {
+		t.Fatal("cannot get containers: %s", err)
+	}
+	assertEqual(t, len(containers), 1, "")
+	cnt := containers[0]
+	assertEqual(t, cnt.SizeRw, 0, "")
+}
+
+func TestListContainersWithSize(t *testing.T) {
+	client := testDockerClient(t)
+	containers, err := client.ListContainers(true, true)
+	if err != nil {
+		t.Fatal("cannot get containers: %s", err)
+	}
+	assertEqual(t, len(containers), 1, "")
+	cnt := containers[0]
+	assertEqual(t, cnt.SizeRw, 123, "")
+}
