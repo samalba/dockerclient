@@ -8,7 +8,7 @@ type Callback func(*Event, ...interface{})
 
 type Client interface {
 	Info() (*Info, error)
-	ListContainers(all bool) ([]Container, error)
+	ListContainers(all, size bool) ([]Container, error)
 	InspectContainer(id string) (*ContainerInfo, error)
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error)
