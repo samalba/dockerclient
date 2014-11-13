@@ -91,3 +91,13 @@ func (client *MockClient) RemoveImage(name string) error {
 	args := client.Mock.Called(name)
 	return args.Error(0)
 }
+
+func (client *MockClient) PauseContainer(name string) error {
+	args := client.Mock.Called(name)
+	return args.Error(0)
+}
+
+func (client *MockClient) UnpauseContainer(name string) error {
+	args := client.Mock.Called(name)
+	return args.Error(0)
+}

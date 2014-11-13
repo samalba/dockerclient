@@ -293,3 +293,20 @@ func (client *DockerClient) RemoveImage(name string) error {
 	_, err := client.doRequest("DELETE", uri, nil)
 	return err
 }
+
+func (client *DockerClient) PauseContainer(id string) error {
+	uri := fmt.Sprintf("/%s/containers/%s/pause", APIVersion, id)
+	_, err := client.doRequest("POST", uri, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (client *DockerClient) UnpauseContainer(id string) error {
+	uri := fmt.Sprintf("/%s/containers/%s/unpause", APIVersion, id)
+	_, err := client.doRequest("POST", uri, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
