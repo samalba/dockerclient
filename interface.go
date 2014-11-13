@@ -23,4 +23,6 @@ type Client interface {
 	RemoveContainer(id string, force bool) error
 	ListImages() ([]*Image, error)
 	RemoveImage(name string) error
+	PauseContainer(name string) error
+	UnpauseContainer(name string) error
 }
