@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync/atomic"
 )
 
@@ -152,14 +153,16 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig, name string
 	return result.Id, nil
 }
 
-func (client *DockerClient) ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error) {
+func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error) {
 	v := url.Values{}
-	if stdout {
-		v.Add("stdout", "1")
+	v.Add("follow", strconv.FormatBool(options.Follow))
+	v.Add("stdout", strconv.FormatBool(options.Stdout))
+	v.Add("stderr", strconv.FormatBool(options.Stderr))
+	v.Add("timestamps", strconv.FormatBool(options.Timestamps))
+	if options.Tail > 0 {
+		v.Add("tail", strconv.Itoa(options.Tail))
 	}
-	if stderr {
-		v.Add("stderr", "1")
-	}
+
 	uri := fmt.Sprintf("/%s/containers/%s/logs?%s", APIVersion, id, v.Encode())
 	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
 	if err != nil {

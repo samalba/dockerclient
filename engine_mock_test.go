@@ -1,10 +1,18 @@
 package dockerclient
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"time"
 
+	"github.com/docker/docker/pkg/jsonlog"
+	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/docker/docker/pkg/timeutils"
+	"github.com/docker/docker/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -17,6 +25,7 @@ func init() {
 	baseURL := "/" + APIVersion
 	r.HandleFunc(baseURL+"/info", handlerGetInfo).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/json", handlerGetContainers).Methods("GET")
+	r.HandleFunc(baseURL+"/containers/{id}/logs", handleContainerLogs).Methods("GET")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -26,6 +35,55 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 		handler.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(logHandler)
+}
+
+func handleContainerLogs(w http.ResponseWriter, r *http.Request) {
+	var outStream, errStream io.Writer
+	outStream = utils.NewWriteFlusher(w)
+
+	// not sure how to test follow
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	stdout, stderr := getBoolValue(r.Form.Get("stdout")), getBoolValue(r.Form.Get("stderr"))
+	if stderr {
+		errStream = stdcopy.NewStdWriter(outStream, stdcopy.Stderr)
+	}
+	if stdout {
+		outStream = stdcopy.NewStdWriter(outStream, stdcopy.Stdout)
+	}
+	var i int
+	if tail, err := strconv.Atoi(r.Form.Get("tail")); err == nil && tail > 0 {
+		i = 50 - tail
+		if i < 0 {
+			i = 0
+		}
+	}
+	for ; i < 50; i++ {
+		line := fmt.Sprintf("line %d", i)
+		if getBoolValue(r.Form.Get("timestamps")) {
+			l := &jsonlog.JSONLog{Log: line, Created: time.Now()}
+			line = fmt.Sprintf("%s %s", l.Created.Format(timeutils.RFC3339NanoFixed), line)
+		}
+		if i%2 == 0 && stderr {
+			fmt.Fprintln(errStream, line)
+		} else if i%2 == 1 && stdout {
+			fmt.Fprintln(outStream, line)
+		}
+	}
+}
+
+func getBoolValue(boolString string) bool {
+	switch boolString {
+	case "1":
+		return true
+	case "True":
+		return true
+	case "true":
+		return true
+	default:
+		return false
+	}
 }
 
 func writeHeaders(w http.ResponseWriter, code int, jobName string) {

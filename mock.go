@@ -34,8 +34,8 @@ func (client *MockClient) CreateContainer(config *ContainerConfig, name string) 
 	return args.String(0), args.Error(1)
 }
 
-func (client *MockClient) ContainerLogs(id string, stdout bool, stderr bool) (io.ReadCloser, error) {
-	args := client.Mock.Called(id, stdout, stderr)
+func (client *MockClient) ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error) {
+	args := client.Mock.Called(id, options)
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
