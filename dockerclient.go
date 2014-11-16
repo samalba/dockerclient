@@ -259,9 +259,12 @@ func (client *DockerClient) Version() (*Version, error) {
 	return version, nil
 }
 
-func (client *DockerClient) PullImage(name string) error {
+func (client *DockerClient) PullImage(name, tag string) error {
 	v := url.Values{}
 	v.Set("fromImage", name)
+	if v != nil {
+		v.Set("tag", tag)
+	}
 	uri := fmt.Sprintf("/%s/images/create?%s", APIVersion, v.Encode())
 	_, err := client.doRequest("POST", uri, nil)
 	return err
