@@ -94,7 +94,7 @@ func (client *DockerClient) Info() (*Info, error) {
 	return ret, nil
 }
 
-func (client *DockerClient) ListContainers(all bool, size bool) ([]Container, error) {
+func (client *DockerClient) ListContainers(all bool, size bool, filters string) ([]Container, error) {
 	argAll := 0
 	if all == true {
 		argAll = 1
@@ -104,6 +104,11 @@ func (client *DockerClient) ListContainers(all bool, size bool) ([]Container, er
 		showSize = 1
 	}
 	uri := fmt.Sprintf("/%s/containers/json?all=%d&size=%d", APIVersion, argAll, showSize)
+
+	if filters != "" {
+		uri += "&filters=" + filters
+	}
+
 	data, err := client.doRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err

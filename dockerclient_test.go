@@ -3,9 +3,10 @@ package dockerclient
 import (
 	"bytes"
 	"fmt"
-	"github.com/docker/docker/pkg/stdcopy"
 	"strings"
 	"testing"
+
+	"github.com/docker/docker/pkg/stdcopy"
 )
 
 func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
@@ -38,7 +39,7 @@ func TestInfo(t *testing.T) {
 
 func TestListContainers(t *testing.T) {
 	client := testDockerClient(t)
-	containers, err := client.ListContainers(true, false)
+	containers, err := client.ListContainers(true, false, "")
 	if err != nil {
 		t.Fatal("cannot get containers: %s", err)
 	}
@@ -49,13 +50,27 @@ func TestListContainers(t *testing.T) {
 
 func TestListContainersWithSize(t *testing.T) {
 	client := testDockerClient(t)
-	containers, err := client.ListContainers(true, true)
+	containers, err := client.ListContainers(true, true, "")
 	if err != nil {
 		t.Fatal("cannot get containers: %s", err)
 	}
 	assertEqual(t, len(containers), 1, "")
 	cnt := containers[0]
 	assertEqual(t, cnt.SizeRw, 123, "")
+}
+func TestListContainersWithFilters(t *testing.T) {
+	client := testDockerClient(t)
+	containers, err := client.ListContainers(true, true, "{'id':['332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688ce']}")
+	if err != nil {
+		t.Fatal("cannot get containers: %s", err)
+	}
+	assertEqual(t, len(containers), 1, "")
+
+	containers, err = client.ListContainers(true, true, "{'id':['332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688cf']}")
+	if err != nil {
+		t.Fatal("cannot get containers: %s", err)
+	}
+	assertEqual(t, len(containers), 0, "")
 }
 
 func TestContainerLogs(t *testing.T) {

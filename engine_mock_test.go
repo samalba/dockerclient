@@ -167,5 +167,10 @@ func handlerGetContainers(w http.ResponseWriter, r *http.Request) {
         ]`
 		}
 	}
+	if v, ok := r.URL.Query()["filters"]; ok {
+		if v[0] != "{'id':['332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688ce']}" {
+			body = "[]"
+		}
+	}
 	w.Write([]byte(body))
 }
