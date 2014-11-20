@@ -33,8 +33,8 @@ func TestInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal("Cannot get server info")
 	}
-	assertEqual(t, info.Images, 1, "")
-	assertEqual(t, info.Containers, 2, "")
+	assertEqual(t, info.Images, int64(1), "")
+	assertEqual(t, info.Containers, int64(2), "")
 }
 
 func TestListContainers(t *testing.T) {
@@ -45,7 +45,7 @@ func TestListContainers(t *testing.T) {
 	}
 	assertEqual(t, len(containers), 1, "")
 	cnt := containers[0]
-	assertEqual(t, cnt.SizeRw, 0, "")
+	assertEqual(t, cnt.SizeRw, int64(0), "")
 }
 
 func TestListContainersWithSize(t *testing.T) {
@@ -56,7 +56,7 @@ func TestListContainersWithSize(t *testing.T) {
 	}
 	assertEqual(t, len(containers), 1, "")
 	cnt := containers[0]
-	assertEqual(t, cnt.SizeRw, 123, "")
+	assertEqual(t, cnt.SizeRw, int64(123), "")
 }
 func TestListContainersWithFilters(t *testing.T) {
 	client := testDockerClient(t)
