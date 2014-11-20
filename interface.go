@@ -15,7 +15,7 @@ type Client interface {
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
-	KillContainer(id string) error
+	KillContainer(id, signal string) error
 	StartMonitorEvents(cb Callback, args ...interface{})
 	StopAllMonitorEvents()
 	Version() (*Version, error)

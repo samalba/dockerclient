@@ -212,8 +212,8 @@ func (client *DockerClient) RestartContainer(id string, timeout int) error {
 	return nil
 }
 
-func (client *DockerClient) KillContainer(id string) error {
-	uri := fmt.Sprintf("/%s/containers/%s/kill", APIVersion, id)
+func (client *DockerClient) KillContainer(id, signal string) error {
+	uri := fmt.Sprintf("/%s/containers/%s/kill?signal=%s", APIVersion, id, signal)
 	_, err := client.doRequest("POST", uri, nil)
 	if err != nil {
 		return err

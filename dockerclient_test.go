@@ -37,6 +37,13 @@ func TestInfo(t *testing.T) {
 	assertEqual(t, info.Containers, int64(2), "")
 }
 
+func TestKillContainer(t *testing.T) {
+	client := testDockerClient(t)
+	if err := client.KillContainer("23132acf2ac", "5"); err != nil {
+		t.Fatal("cannot kill container: %s", err)
+	}
+}
+
 func TestListContainers(t *testing.T) {
 	client := testDockerClient(t)
 	containers, err := client.ListContainers(true, false, "")
