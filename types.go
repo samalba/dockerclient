@@ -23,7 +23,7 @@ type ContainerConfig struct {
 	Image           string
 	Volumes         map[string]struct{}
 	WorkingDir      string
-	Entrypoint64    []string
+	Entrypoint      []string
 	NetworkDisabled bool
 	OnBuild         []string
 
@@ -75,8 +75,8 @@ type ContainerInfo struct {
 		Running    bool
 		Paused     bool
 		Restarting bool
-		Pid        int64
-		ExitCode   int64
+		Pid        int
+		ExitCode   int
 		StartedAt  time.Time
 		FinishedAt time.Time
 		Ghost      bool
@@ -84,7 +84,7 @@ type ContainerInfo struct {
 	Image           string
 	NetworkSettings struct {
 		IpAddress   string
-		IpPrefixLen int64
+		IpPrefixLen int
 		Gateway     string
 		Bridge      string
 		Ports       map[string][]PortBinding
@@ -97,8 +97,8 @@ type ContainerInfo struct {
 
 type Port struct {
 	IP          string
-	PrivatePort int64
-	PublicPort  int64
+	PrivatePort int
+	PublicPort  int
 	Type        string
 }
 
