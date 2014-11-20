@@ -142,6 +142,7 @@ type Image struct {
 }
 
 type Info struct {
+	ID              string
 	Containers      int64
 	Driver          string
 	DriverStatus    [][]string
@@ -151,4 +152,5 @@ type Info struct {
 	OperatingSystem string
 	NCPU            int64
 	MemTotal        int64
+	Name            string
 }
