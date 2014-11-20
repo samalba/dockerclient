@@ -6,9 +6,9 @@ type ContainerConfig struct {
 	Hostname        string
 	Domainname      string
 	User            string
-	Memory          int
-	MemorySwap      int
-	CpuShares       int
+	Memory          int64
+	MemorySwap      int64
+	CpuShares       int64
 	Cpuset          string
 	AttachStdin     bool
 	AttachStdout    bool
@@ -23,7 +23,7 @@ type ContainerConfig struct {
 	Image           string
 	Volumes         map[string]struct{}
 	WorkingDir      string
-	Entrypoint      []string
+	Entrypoint64    []string
 	NetworkDisabled bool
 	OnBuild         []string
 
@@ -51,12 +51,12 @@ type LogOptions struct {
 	Stdout     bool
 	Stderr     bool
 	Timestamps bool
-	Tail       int
+	Tail       int64
 }
 
 type RestartPolicy struct {
 	Name              string
-	MaximumRetryCount int
+	MaximumRetryCount int64
 }
 
 type PortBinding struct {
@@ -75,8 +75,8 @@ type ContainerInfo struct {
 		Running    bool
 		Paused     bool
 		Restarting bool
-		Pid        int
-		ExitCode   int
+		Pid        int64
+		ExitCode   int64
 		StartedAt  time.Time
 		FinishedAt time.Time
 		Ghost      bool
@@ -84,7 +84,7 @@ type ContainerInfo struct {
 	Image           string
 	NetworkSettings struct {
 		IpAddress   string
-		IpPrefixLen int
+		IpPrefixLen int64
 		Gateway     string
 		Bridge      string
 		Ports       map[string][]PortBinding
@@ -97,8 +97,8 @@ type ContainerInfo struct {
 
 type Port struct {
 	IP          string
-	PrivatePort int
-	PublicPort  int
+	PrivatePort int64
+	PublicPort  int64
 	Type        string
 }
 
@@ -107,18 +107,18 @@ type Container struct {
 	Names      []string
 	Image      string
 	Command    string
-	Created    int
+	Created    int64
 	Status     string
 	Ports      []Port
-	SizeRw     int
-	SizeRootFs int
+	SizeRw     int64
+	SizeRootFs int64
 }
 
 type Event struct {
 	Id     string
 	Status string
 	From   string
-	Time   int
+	Time   int64
 }
 
 type Version struct {
@@ -142,13 +142,13 @@ type Image struct {
 }
 
 type Info struct {
-	Containers      int
+	Containers      int64
 	Driver          string
 	DriverStatus    [][]string
 	ExecutionDriver string
-	Images          int
+	Images          int64
 	KernelVersion   string
 	OperatingSystem string
-	NCPU            int
+	NCPU            int64
 	MemTotal        int64
 }

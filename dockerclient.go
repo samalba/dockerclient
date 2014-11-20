@@ -165,7 +165,7 @@ func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.Re
 	v.Add("stderr", strconv.FormatBool(options.Stderr))
 	v.Add("timestamps", strconv.FormatBool(options.Timestamps))
 	if options.Tail > 0 {
-		v.Add("tail", strconv.Itoa(options.Tail))
+		v.Add("tail", strconv.FormatInt(options.Tail, 10))
 	}
 
 	uri := fmt.Sprintf("/%s/containers/%s/logs?%s", APIVersion, id, v.Encode())
