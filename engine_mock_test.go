@@ -26,6 +26,7 @@ func init() {
 	r.HandleFunc(baseURL+"/info", handlerGetInfo).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/json", handlerGetContainers).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/logs", handleContainerLogs).Methods("GET")
+	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -35,6 +36,10 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 		handler.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(logHandler)
+}
+
+func handleContainerKill(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "{%q:%q", "Id", "421373210afd132")
 }
 
 func handleContainerLogs(w http.ResponseWriter, r *http.Request) {

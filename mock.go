@@ -54,8 +54,8 @@ func (client *MockClient) RestartContainer(id string, timeout int) error {
 	return args.Error(0)
 }
 
-func (client *MockClient) KillContainer(id string) error {
-	args := client.Mock.Called(id)
+func (client *MockClient) KillContainer(id, signal string) error {
+	args := client.Mock.Called(id, signal)
 	return args.Error(0)
 }
 
