@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -21,6 +22,8 @@ const (
 
 var (
 	ErrNotFound = errors.New("Not found")
+
+	defaultTimeout = 30 * time.Second
 )
 
 type DockerClient struct {
@@ -40,6 +43,10 @@ func (e Error) Error() string {
 }
 
 func NewDockerClient(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, error) {
+	return NewDockerClientTimeout(daemonUrl, tlsConfig, time.Duration(defaultTimeout))
+}
+
+func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout time.Duration) (*DockerClient, error) {
 	u, err := url.Parse(daemonUrl)
 	if err != nil {
 		return nil, err
@@ -51,7 +58,7 @@ func NewDockerClient(daemonUrl string, tlsConfig *tls.Config) (*DockerClient, er
 			u.Scheme = "https"
 		}
 	}
-	httpClient := newHTTPClient(u, tlsConfig)
+	httpClient := newHTTPClient(u, tlsConfig, timeout)
 	return &DockerClient{u, httpClient, 0}, nil
 }
 
