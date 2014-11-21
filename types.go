@@ -153,4 +153,5 @@ type Info struct {
 	NCPU            int64
 	MemTotal        int64
 	Name            string
+	Labels          []string
 }
