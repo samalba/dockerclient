@@ -340,3 +340,27 @@ func (client *DockerClient) UnpauseContainer(id string) error {
 	}
 	return nil
 }
+
+func (client *DockerClient) Exec(config *ExecConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := fmt.Sprintf("/containers/%s/exec", config.Container)
+	resp, err := client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	var createExecResp struct {
+		Id string
+	}
+	if err = json.Unmarshal(resp, &createExecResp); err != nil {
+		return "", err
+	}
+	uri = fmt.Sprintf("/exec/%s/start", createExecResp.Id)
+	resp, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	return createExecResp.Id, nil
+}
