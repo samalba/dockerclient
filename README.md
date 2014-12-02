@@ -25,7 +25,7 @@ func main() {
 	docker, _ := dockerclient.NewDockerClient("unix:///var/run/docker.sock", nil)
 
 	// Get only running containers
-	containers, err := docker.ListContainers(false)
+	containers, err := docker.ListContainers(false, false, "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,15 +40,21 @@ func main() {
 		log.Println(info)
 	}
 
+	// Pull image
+	err = docker.PullImage("ubuntu:12.04", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create a container
 	containerConfig := &dockerclient.ContainerConfig{Image: "ubuntu:12.04", Cmd: []string{"bash"}}
-	containerId, err := docker.CreateContainer(containerConfig)
+	containerId, err := docker.CreateContainer(containerConfig, "")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Start the container
-	err = docker.StartContainer(containerId)
+	err = docker.StartContainer(containerId, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
