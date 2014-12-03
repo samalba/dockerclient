@@ -24,7 +24,7 @@ func main() {
 	// Init the client
 	// unix socket
 	docker, _ := dockerclient.NewDockerClient("unix:///var/run/docker.sock", nil)
-	// Over http
+	// Example of over http
 	// dockerclient.NewDockerClient("http://127.0.0.1:2375", nil)
 
 	// Get only running containers
