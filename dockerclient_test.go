@@ -3,6 +3,7 @@ package dockerclient
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -121,5 +122,14 @@ func TestContainerLogs(t *testing.T) {
 		if !strings.HasSuffix(line, expectedSuffix) {
 			t.Fatalf("expected stderr log line \"%s\" to end with \"%s\"", line, expectedSuffix)
 		}
+	}
+}
+
+func TestDockerClientInterface(t *testing.T) {
+	iface := reflect.TypeOf((*Client)(nil)).Elem()
+	test := testDockerClient(t)
+
+	if !reflect.TypeOf(test).Implements(iface) {
+		t.Fatalf("DockerClient does not implement the Client interface")
 	}
 }

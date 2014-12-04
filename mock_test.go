@@ -1,6 +1,7 @@
 package dockerclient
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -17,4 +18,13 @@ func TestMock(t *testing.T) {
 	}
 
 	mock.Mock.AssertExpectations(t)
+}
+
+func TestMockInterface(t *testing.T) {
+	iface := reflect.TypeOf((*Client)(nil)).Elem()
+	mock := NewMockClient()
+
+	if !reflect.TypeOf(mock).Implements(iface) {
+		t.Fatalf("Mock does not implement the Client interface")
+	}
 }
