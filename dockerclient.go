@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -29,6 +30,7 @@ var (
 type DockerClient struct {
 	URL           *url.URL
 	HTTPClient    *http.Client
+	TLSConfig     *tls.Config
 	monitorEvents int32
 }
 
@@ -59,7 +61,7 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 		}
 	}
 	httpClient := newHTTPClient(u, tlsConfig, timeout)
-	return &DockerClient{u, httpClient, 0}, nil
+	return &DockerClient{u, httpClient, tlsConfig, 0}, nil
 }
 
 func (client *DockerClient) doRequest(method string, path string, body []byte, headers map[string]string) ([]byte, error) {
@@ -76,6 +78,9 @@ func (client *DockerClient) doRequest(method string, path string, body []byte, h
 	}
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
+		if !strings.Contains(err.Error(), "connection refused") && client.TLSConfig == nil {
+			return nil, fmt.Errorf("%v. Are you trying to connect to a TLS-enabled daemon without TLS?", err)
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
