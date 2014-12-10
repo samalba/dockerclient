@@ -3,11 +3,39 @@ package dockerclient
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/docker/docker/pkg/stdcopy"
 )
+
+func ExampleCreateContainer() error {
+
+	docker, err := NewDockerClient(os.Getenv("DOCKER_HOST"), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	containerConfig := &ContainerConfig{
+		Image:        "ubuntu:12.04",
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		ExposedPorts: map[string]struct{}{
+			"8080/tcp": {},
+		},
+	}
+
+	_, err = docker.CreateContainer(containerConfig, "my_container")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+
+}
 
 func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
 	if a == b {

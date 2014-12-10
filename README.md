@@ -1,5 +1,5 @@
-Docker client library in Go
-===========================
+# Docker client library in Go
+
 [![GoDoc](http://godoc.org/github.com/samalba/dockerclient?status.png)](http://godoc.org/github.com/samalba/dockerclient)
 
 Well maintained docker client library.
@@ -22,10 +22,13 @@ func eventCallback(event *dockerclient.Event, args ...interface{}) {
 
 func main() {
 	// Init the client
+	// unix socket
 	docker, _ := dockerclient.NewDockerClient("unix:///var/run/docker.sock", nil)
+	// Example of over http
+	// dockerclient.NewDockerClient("http://127.0.0.1:2375", nil)
 
 	// Get only running containers
-	containers, err := docker.ListContainers(false)
+	containers, err := docker.ListContainers(true, false, "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,13 +45,15 @@ func main() {
 
 	// Create a container
 	containerConfig := &dockerclient.ContainerConfig{Image: "ubuntu:12.04", Cmd: []string{"bash"}}
-	containerId, err := docker.CreateContainer(containerConfig)
+	containerId, err := docker.CreateContainer(containerConfig, "my_container")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Start the container
-	err = docker.StartContainer(containerId)
+	hostConfig := &dockerclient.HostConfig{
+		PublishAllPorts: true} 
+	err = docker.StartContainer(containerId, hostConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
