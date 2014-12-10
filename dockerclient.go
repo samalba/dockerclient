@@ -290,7 +290,10 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	if auth != nil {
 		headers["X-Registry-Auth"] = auth.encode()
 	}
-	_, err := client.doRequest("POST", uri, nil, headers)
+	response, err := client.doRequest("POST", uri, nil, headers)
+	if strings.Contains(string(response), "errorDetail") {
+		err = errors.New("Image not found")
+	}
 	return err
 }
 

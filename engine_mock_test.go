@@ -27,6 +27,7 @@ func init() {
 	r.HandleFunc(baseURL+"/containers/json", handlerGetContainers).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/logs", handleContainerLogs).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
+	r.HandleFunc(baseURL+"/images/create", handleImagePull).Methods("POST")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -40,6 +41,17 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 
 func handleContainerKill(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{%q:%q", "Id", "421373210afd132")
+}
+
+func handleImagePull(w http.ResponseWriter, r *http.Request) {
+	queryParams := r.URL.Query()
+	var response string
+	if queryParams["fromImage"][0] == "busybox" {
+		response = "{\"status\":\"Pulling repository mydockerregistry/busybox\"}\n{\"status\":\"Status: Image is up to date for mydockerregistry/busybox\"}"
+	} else {
+		response = "{\"status\":\"Pulling repository mydockerregistry/busy\"\n{\"errorDetail\":{\"message\":\"Error: image busy not found\"},\"error\":\"Error: image busy not found\"}"
+	}
+	fmt.Fprint(w, response)
 }
 
 func handleContainerLogs(w http.ResponseWriter, r *http.Request) {
