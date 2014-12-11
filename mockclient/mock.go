@@ -1,8 +1,9 @@
-package dockerclient
+package mockclient
 
 import (
 	"io"
 
+	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -14,32 +15,32 @@ func NewMockClient() *MockClient {
 	return &MockClient{}
 }
 
-func (client *MockClient) Info() (*Info, error) {
+func (client *MockClient) Info() (*dockerclient.Info, error) {
 	args := client.Mock.Called()
-	return args.Get(0).(*Info), args.Error(1)
+	return args.Get(0).(*dockerclient.Info), args.Error(1)
 }
 
-func (client *MockClient) ListContainers(all bool, size bool, filters string) ([]Container, error) {
+func (client *MockClient) ListContainers(all bool, size bool, filters string) ([]dockerclient.Container, error) {
 	args := client.Mock.Called(all, size, filters)
-	return args.Get(0).([]Container), args.Error(1)
+	return args.Get(0).([]dockerclient.Container), args.Error(1)
 }
 
-func (client *MockClient) InspectContainer(id string) (*ContainerInfo, error) {
+func (client *MockClient) InspectContainer(id string) (*dockerclient.ContainerInfo, error) {
 	args := client.Mock.Called(id)
-	return args.Get(0).(*ContainerInfo), args.Error(1)
+	return args.Get(0).(*dockerclient.ContainerInfo), args.Error(1)
 }
 
-func (client *MockClient) CreateContainer(config *ContainerConfig, name string) (string, error) {
+func (client *MockClient) CreateContainer(config *dockerclient.ContainerConfig, name string) (string, error) {
 	args := client.Mock.Called(config, name)
 	return args.String(0), args.Error(1)
 }
 
-func (client *MockClient) ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error) {
+func (client *MockClient) ContainerLogs(id string, options *dockerclient.LogOptions) (io.ReadCloser, error) {
 	args := client.Mock.Called(id, options)
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
-func (client *MockClient) StartContainer(id string, config *HostConfig) error {
+func (client *MockClient) StartContainer(id string, config *dockerclient.HostConfig) error {
 	args := client.Mock.Called(id, config)
 	return args.Error(0)
 }
@@ -59,7 +60,7 @@ func (client *MockClient) KillContainer(id, signal string) error {
 	return args.Error(0)
 }
 
-func (client *MockClient) StartMonitorEvents(cb Callback, args ...interface{}) {
+func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, args ...interface{}) {
 	client.Mock.Called(cb, args)
 }
 
@@ -67,12 +68,12 @@ func (client *MockClient) StopAllMonitorEvents() {
 	client.Mock.Called()
 }
 
-func (client *MockClient) Version() (*Version, error) {
+func (client *MockClient) Version() (*dockerclient.Version, error) {
 	args := client.Mock.Called()
-	return args.Get(0).(*Version), args.Error(1)
+	return args.Get(0).(*dockerclient.Version), args.Error(1)
 }
 
-func (client *MockClient) PullImage(name string, auth *AuthConfig) error {
+func (client *MockClient) PullImage(name string, auth *dockerclient.AuthConfig) error {
 	args := client.Mock.Called(name, auth)
 	return args.Error(0)
 }
@@ -82,9 +83,9 @@ func (client *MockClient) RemoveContainer(id string, force bool) error {
 	return args.Error(0)
 }
 
-func (client *MockClient) ListImages() ([]*Image, error) {
+func (client *MockClient) ListImages() ([]*dockerclient.Image, error) {
 	args := client.Mock.Called()
-	return args.Get(0).([]*Image), args.Error(1)
+	return args.Get(0).([]*dockerclient.Image), args.Error(1)
 }
 
 func (client *MockClient) RemoveImage(name string) error {
