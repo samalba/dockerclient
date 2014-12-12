@@ -46,6 +46,16 @@ type HostConfig struct {
 	RestartPolicy   RestartPolicy
 }
 
+type ExecConfig struct {
+	AttachStdin  bool
+	AttachStdout bool
+	AttachStderr bool
+	Tty          bool
+	Cmd          []string
+	Container    string
+	Detach       bool
+}
+
 type LogOptions struct {
 	Follow     bool
 	Stdout     bool

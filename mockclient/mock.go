@@ -102,3 +102,8 @@ func (client *MockClient) UnpauseContainer(name string) error {
 	args := client.Mock.Called(name)
 	return args.Error(0)
 }
+
+func (client *MockClient) Exec(config *dockerclient.ExecConfig) (string, error) {
+	args := client.Mock.Called(config)
+	return args.String(0), args.Error(1)
+}
