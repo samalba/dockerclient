@@ -80,6 +80,7 @@ type ContainerInfo struct {
 	Path    string
 	Name    string
 	Args    []string
+	ExecIDs []string
 	Config  *ContainerConfig
 	State   struct {
 		Running    bool
