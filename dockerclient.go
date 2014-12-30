@@ -294,6 +294,19 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	return err
 }
 
+func (client *DockerClient) TagImage(name, repo, tag string, force bool) error {
+	v := url.Values{}
+	v.Set("repo", repo)
+	v.Set("tag", tag)
+	if force {
+		v.Set("force", "1")
+	}
+	uri := fmt.Sprintf("/%s/images/"+name+"/tag?%s", APIVersion, v.Encode())
+
+	_, err := client.doRequest("POST", uri, nil, nil)
+	return err
+}
+
 func (client *DockerClient) RemoveContainer(id string, force bool) error {
 	argForce := 0
 	if force == true {
