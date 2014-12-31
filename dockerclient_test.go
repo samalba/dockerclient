@@ -45,6 +45,19 @@ func TestKillContainer(t *testing.T) {
 	}
 }
 
+func TestPullImage(t *testing.T) {
+	client := testDockerClient(t)
+	err := client.PullImage("busybox", nil)
+	if err != nil {
+		t.Fatal("can not pull image")
+	}
+
+	err = client.PullImage("wrongimg", nil)
+	if err == nil {
+		t.Fatal("should throw error if the image is not downloaded")
+	}
+}
+
 func TestListContainers(t *testing.T) {
 	client := testDockerClient(t)
 	containers, err := client.ListContainers(true, false, "")
@@ -123,6 +136,7 @@ func TestContainerLogs(t *testing.T) {
 			t.Fatalf("expected stderr log line \"%s\" to end with \"%s\"", line, expectedSuffix)
 		}
 	}
+
 }
 
 func TestDockerClientInterface(t *testing.T) {
