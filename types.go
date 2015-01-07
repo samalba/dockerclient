@@ -44,6 +44,7 @@ type HostConfig struct {
 	VolumesFrom     []string
 	NetworkMode     string
 	RestartPolicy   RestartPolicy
+	ExtraHosts      []string
 }
 
 type ExecConfig struct {
