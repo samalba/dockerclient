@@ -1,6 +1,7 @@
 package dockerclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -27,6 +28,7 @@ func init() {
 	r.HandleFunc(baseURL+"/containers/json", handlerGetContainers).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/logs", handleContainerLogs).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
+	r.HandleFunc(baseURL+"/images/create", handleImagePull).Methods("POST")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -40,6 +42,29 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 
 func handleContainerKill(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{%q:%q", "Id", "421373210afd132")
+}
+
+func handleImagePull(w http.ResponseWriter, r *http.Request) {
+	imageName := r.URL.Query()["fromImage"][0]
+	responses := []map[string]interface{}{{
+		"status": fmt.Sprintf("Pulling repository mydockerregistry/%s", imageName),
+	}}
+	if imageName == "busybox" {
+		responses = append(responses, map[string]interface{}{
+			"status": "Status: Image is up to date for mydockerregistry/busybox",
+		})
+	} else {
+		errorMsg := fmt.Sprintf("Error: image %s not found", imageName)
+		responses = append(responses, map[string]interface{}{
+			"errorDetail": map[string]interface{}{
+				"message": errorMsg,
+			},
+			"error": errorMsg,
+		})
+	}
+	for _, response := range responses {
+		json.NewEncoder(w).Encode(response)
+	}
 }
 
 func handleContainerLogs(w http.ResponseWriter, r *http.Request) {

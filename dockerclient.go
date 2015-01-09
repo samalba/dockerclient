@@ -1,6 +1,7 @@
 package dockerclient
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -285,13 +286,28 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	v := url.Values{}
 	v.Set("fromImage", name)
 	uri := fmt.Sprintf("/%s/images/create?%s", APIVersion, v.Encode())
-
-	headers := make(map[string]string)
+	req, err := http.NewRequest("POST", client.URL.String()+uri, nil)
 	if auth != nil {
-		headers["X-Registry-Auth"] = auth.encode()
+		req.Header.Add("X-Registry-Auth", auth.encode())
 	}
-	_, err := client.doRequest("POST", uri, nil, headers)
-	return err
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	var finalBytes []byte
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		finalBytes = scanner.Bytes()
+	}
+	var finalObj map[string]interface{}
+	if err = json.Unmarshal(finalBytes, &finalObj); err != nil {
+		return err
+	}
+	if err, ok := finalObj["error"]; ok {
+		return fmt.Errorf("%v", err)
+	}
+	return nil
 }
 
 func (client *DockerClient) RemoveContainer(id string, force bool) error {
