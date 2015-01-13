@@ -54,7 +54,7 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 	if err != nil {
 		return nil, err
 	}
-	if u.Scheme == "tcp" {
+	if u.Scheme == "" || u.Scheme == "tcp" {
 		if tlsConfig == nil {
 			u.Scheme = "http"
 		} else {
