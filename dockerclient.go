@@ -1,7 +1,6 @@
 package dockerclient
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -295,13 +294,10 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 		return err
 	}
 	defer resp.Body.Close()
-	var finalBytes []byte
-	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
-		finalBytes = scanner.Bytes()
-	}
 	var finalObj map[string]interface{}
-	if err = json.Unmarshal(finalBytes, &finalObj); err != nil {
+	for decoder := json.NewDecoder(resp.Body); err == nil; err = decoder.Decode(&finalObj) {
+	}
+	if err != io.EOF {
 		return err
 	}
 	if err, ok := finalObj["error"]; ok {

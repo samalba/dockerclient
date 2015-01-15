@@ -49,11 +49,15 @@ func handleImagePull(w http.ResponseWriter, r *http.Request) {
 	responses := []map[string]interface{}{{
 		"status": fmt.Sprintf("Pulling repository mydockerregistry/%s", imageName),
 	}}
-	if imageName == "busybox" {
+	switch imageName {
+	case "busybox":
 		responses = append(responses, map[string]interface{}{
 			"status": "Status: Image is up to date for mydockerregistry/busybox",
 		})
-	} else {
+	case "haproxy":
+		fmt.Fprintf(w, haproxyPullOutput)
+		return
+	default:
 		errorMsg := fmt.Sprintf("Error: image %s not found", imageName)
 		responses = append(responses, map[string]interface{}{
 			"errorDetail": map[string]interface{}{

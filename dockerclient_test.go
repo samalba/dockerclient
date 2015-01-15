@@ -52,6 +52,11 @@ func TestPullImage(t *testing.T) {
 		t.Fatal("unable to pull busybox")
 	}
 
+	err = client.PullImage("haproxy", nil)
+	if err != nil {
+		t.Fatal("unable to pull haproxy")
+	}
+
 	err = client.PullImage("wrongimg", nil)
 	if err == nil {
 		t.Fatal("should return error when it fails to pull wrongimg")
