@@ -238,16 +238,17 @@ func (client *DockerClient) KillContainer(id, signal string) error {
 	return nil
 }
 
-func (client *DockerClient) StartMonitorEvents(cb Callback, args ...interface{}) {
+func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args ...interface{}) {
 	atomic.StoreInt32(&client.monitorEvents, 1)
-	go client.getEvents(cb, args...)
+	go client.getEvents(cb, ec, args...)
 }
 
-func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
+func (client *DockerClient) getEvents(cb Callback, ec chan error, args ...interface{}) {
 	uri := fmt.Sprintf("%s/%s/events", client.URL.String(), APIVersion)
 	resp, err := client.HTTPClient.Get(uri)
 	if err != nil {
 		log.Printf("GET %s failed: %v", uri, err)
+		ec <- err
 		return
 	}
 	defer resp.Body.Close()
@@ -257,9 +258,10 @@ func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
 		var event *Event
 		if err := dec.Decode(&event); err != nil {
 			log.Printf("Event decoding failed: %v", err)
+			ec <- err
 			return
 		}
-		cb(event, args...)
+		cb(event, ec, args...)
 	}
 }
 

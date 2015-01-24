@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func eventCallback(e *dockerclient.Event, args ...interface{}) {
+func eventCallback(e *dockerclient.Event, ec chan error, args ...interface{}) {
 	log.Println(e)
 }
 
@@ -26,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	docker.StartMonitorEvents(eventCallback)
+	docker.StartMonitorEvents(eventCallback, nil)
 
 	waitForInterrupt()
 }
