@@ -60,8 +60,8 @@ func (client *MockClient) KillContainer(id, signal string) error {
 	return args.Error(0)
 }
 
-func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, args ...interface{}) {
-	client.Mock.Called(cb, args)
+func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, ec chan error, args ...interface{}) {
+	client.Mock.Called(cb, ec, args)
 }
 
 func (client *MockClient) StopAllMonitorEvents() {
