@@ -53,7 +53,7 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 	if err != nil {
 		return nil, err
 	}
-	if u.Scheme == "tcp" {
+	if u.Scheme == "" || u.Scheme == "tcp" {
 		if tlsConfig == nil {
 			u.Scheme = "http"
 		} else {
@@ -238,16 +238,17 @@ func (client *DockerClient) KillContainer(id, signal string) error {
 	return nil
 }
 
-func (client *DockerClient) StartMonitorEvents(cb Callback, args ...interface{}) {
+func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args ...interface{}) {
 	atomic.StoreInt32(&client.monitorEvents, 1)
-	go client.getEvents(cb, args...)
+	go client.getEvents(cb, ec, args...)
 }
 
-func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
+func (client *DockerClient) getEvents(cb Callback, ec chan error, args ...interface{}) {
 	uri := fmt.Sprintf("%s/%s/events", client.URL.String(), APIVersion)
 	resp, err := client.HTTPClient.Get(uri)
 	if err != nil {
 		log.Printf("GET %s failed: %v", uri, err)
+		ec <- err
 		return
 	}
 	defer resp.Body.Close()
@@ -257,9 +258,10 @@ func (client *DockerClient) getEvents(cb Callback, args ...interface{}) {
 		var event *Event
 		if err := dec.Decode(&event); err != nil {
 			log.Printf("Event decoding failed: %v", err)
+			ec <- err
 			return
 		}
-		cb(event, args...)
+		cb(event, ec, args...)
 	}
 }
 
@@ -285,13 +287,25 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	v := url.Values{}
 	v.Set("fromImage", name)
 	uri := fmt.Sprintf("/%s/images/create?%s", APIVersion, v.Encode())
-
-	headers := make(map[string]string)
+	req, err := http.NewRequest("POST", client.URL.String()+uri, nil)
 	if auth != nil {
-		headers["X-Registry-Auth"] = auth.encode()
+		req.Header.Add("X-Registry-Auth", auth.encode())
 	}
-	_, err := client.doRequest("POST", uri, nil, headers)
-	return err
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	var finalObj map[string]interface{}
+	for decoder := json.NewDecoder(resp.Body); err == nil; err = decoder.Decode(&finalObj) {
+	}
+	if err != io.EOF {
+		return err
+	}
+	if err, ok := finalObj["error"]; ok {
+		return fmt.Errorf("%v", err)
+	}
+	return nil
 }
 
 func (client *DockerClient) RemoveContainer(id string, force bool) error {

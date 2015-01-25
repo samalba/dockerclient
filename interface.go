@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-type Callback func(*Event, ...interface{})
+type Callback func(*Event, chan error, ...interface{})
 
 type Client interface {
 	Info() (*Info, error)
@@ -17,7 +17,7 @@ type Client interface {
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
 	KillContainer(id, signal string) error
-	StartMonitorEvents(cb Callback, args ...interface{})
+	StartMonitorEvents(cb Callback, ec chan error, args ...interface{})
 	StopAllMonitorEvents()
 	Version() (*Version, error)
 	PullImage(name string, auth *AuthConfig) error
