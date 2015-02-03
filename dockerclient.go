@@ -255,6 +255,7 @@ func (client *DockerClient) ContainerStats(id string) (<-chan stats.Stats, <-cha
 				statsChan <- containerStats
 			case err := <-internalErrorChan:
 				errorChan <- err
+				<-closeChan
 				return
 			case <-closeChan:
 				return

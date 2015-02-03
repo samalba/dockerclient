@@ -168,7 +168,6 @@ func TestContainerStats(t *testing.T) {
 		{expectedContainerStats, "error"},
 		{expectedContainerStats, expectedContainerStats},
 	}
-	errored := false
 
 	for i := range containerIds {
 		t.Log("on outer iter %d\n", i)
@@ -188,14 +187,11 @@ func TestContainerStats(t *testing.T) {
 				if expectedResult != "error" {
 					t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", j, err, expectedResult)
 				}
-				errored = true
 				break
 			}
 			t.Log("done with iter %d\n", j)
 		}
-		if !errored {
-			closeChan <- struct{}{}
-		}
+		closeChan <- struct{}{}
 		close(closeChan)
 		t.Log("done with outer iter %d\n", i)
 	}
