@@ -225,7 +225,6 @@ func (client *DockerClient) ContainerStats(id string) (<-chan stats.Stats, <-cha
 	errorChan := make(chan error)
 	closeChan := make(chan struct{})
 	go func() {
-		defer resp.Body.Close()
 		defer close(statsChan)
 		defer close(errorChan)
 
@@ -233,20 +232,24 @@ func (client *DockerClient) ContainerStats(id string) (<-chan stats.Stats, <-cha
 		internalErrorChan := make(chan error)
 		defer close(internalStatsChan)
 		defer close(internalErrorChan)
-		decoder := json.NewDecoder(resp.Body)
-		for {
-			go func() {
-				defer func() {
-					recover() // ugly but necessary for sending on closed chan
-				}()
+
+		go func() {
+			decoder := json.NewDecoder(resp.Body)
+			defer func() {
+				recover() // ugly but necessary for sending on closed chan
+				resp.Body.Close()
+			}()
+			for {
 				var containerStats stats.Stats
 				if err := decoder.Decode(&containerStats); err != nil {
 					internalErrorChan <- err
 					return
 				}
 				internalStatsChan <- containerStats
-			}()
+			}
+		}()
 
+		for {
 			select {
 			case containerStats := <-internalStatsChan:
 				statsChan <- containerStats
