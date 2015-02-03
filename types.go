@@ -1,6 +1,8 @@
 package dockerclient
 
-import "time"
+import (
+	"time"
+)
 
 type ContainerConfig struct {
 	Hostname        string

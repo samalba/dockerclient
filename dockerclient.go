@@ -14,6 +14,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/docker/docker/api/stats"
 )
 
 const (
@@ -210,6 +212,53 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 		return nil, err
 	}
 	return changes, nil
+}
+
+func (client *DockerClient) ContainerStats(id string) (<-chan stats.Stats, <-chan error, chan<- struct{}, error) {
+	uri := fmt.Sprintf("/%s/containers/%s/stats", APIVersion, id)
+	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	statsChan := make(chan stats.Stats)
+	errorChan := make(chan error)
+	closeChan := make(chan struct{})
+	go func() {
+		defer resp.Body.Close()
+		defer close(statsChan)
+		defer close(errorChan)
+
+		internalStatsChan := make(chan stats.Stats)
+		internalErrorChan := make(chan error)
+		defer close(internalStatsChan)
+		defer close(internalErrorChan)
+		decoder := json.NewDecoder(resp.Body)
+		for {
+			go func() {
+				defer func() {
+					recover() // ugly but necessary for sending on closed chan
+				}()
+				var containerStats stats.Stats
+				if err := decoder.Decode(&containerStats); err != nil {
+					internalErrorChan <- err
+					return
+				}
+				internalStatsChan <- containerStats
+			}()
+
+			select {
+			case containerStats := <-internalStatsChan:
+				statsChan <- containerStats
+			case err := <-internalErrorChan:
+				errorChan <- err
+				return
+			case <-closeChan:
+				return
+			}
+		}
+	}()
+	return statsChan, errorChan, closeChan, nil
 }
 
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {

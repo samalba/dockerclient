@@ -2,11 +2,13 @@ package dockerclient
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/docker/docker/api/stats"
 	"github.com/docker/docker/pkg/stdcopy"
 )
 
@@ -152,6 +154,50 @@ func TestContainerLogs(t *testing.T) {
 		if !strings.HasSuffix(line, expectedSuffix) {
 			t.Fatalf("expected stderr log line \"%s\" to end with \"%s\"", line, expectedSuffix)
 		}
+	}
+}
+
+func TestContainerStats(t *testing.T) {
+	client := testDockerClient(t)
+	var expectedContainerStats stats.Stats
+	if err := json.Unmarshal([]byte(statsResp), &expectedContainerStats); err != nil {
+		t.Fatalf("cannot parse expected resp: %s", err.Error())
+	}
+	containerIds := []string{"foobar", "foo"}
+	expectedResults := [][]interface{}{
+		{expectedContainerStats, "error"},
+		{expectedContainerStats, expectedContainerStats},
+	}
+	errored := false
+
+	for i := range containerIds {
+		t.Log("on outer iter %d\n", i)
+		statsChan, errorChan, closeChan, err := client.ContainerStats(containerIds[i])
+		if err != nil {
+			t.Fatalf("cannot get stats from server: %s", err.Error())
+		}
+
+		for j, expectedResult := range expectedResults[i] {
+			t.Log("on iter %d\n", j)
+			select {
+			case containerStats := <-statsChan:
+				if !reflect.DeepEqual(containerStats, expectedResult) {
+					t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", j, containerStats, expectedResult)
+				}
+			case err := <-errorChan:
+				if expectedResult != "error" {
+					t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", j, err, expectedResult)
+				}
+				errored = true
+				break
+			}
+			t.Log("done with iter %d\n", j)
+		}
+		if !errored {
+			closeChan <- struct{}{}
+		}
+		close(closeChan)
+		t.Log("done with outer iter %d\n", i)
 	}
 }
 

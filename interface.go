@@ -2,6 +2,8 @@ package dockerclient
 
 import (
 	"io"
+
+	"github.com/docker/docker/api/stats"
 )
 
 type Callback func(*Event, chan error, ...interface{})
@@ -15,6 +17,7 @@ type Client interface {
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
 	ContainerChanges(id string) ([]*ContainerChanges, error)
+	ContainerStats(id string) (<-chan stats.Stats, <-chan error, chan<- struct{}, error)
 	Exec(config *ExecConfig) (string, error)
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
