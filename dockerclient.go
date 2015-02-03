@@ -220,7 +220,7 @@ func (client *DockerClient) ContainerStats(id string) (<-chan Stats, <-chan erro
 		return nil, nil, nil, err
 	}
 	statsChan := make(chan Stats)
-	errorChan := make(chan error)
+	errorChan := make(chan error, 1)
 	closeChan := make(chan struct{})
 	go func() {
 		defer close(statsChan)

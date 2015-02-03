@@ -169,14 +169,14 @@ func TestContainerStats(t *testing.T) {
 	}
 
 	for i := range containerIds {
-		t.Log("on outer iter %d\n", i)
+		t.Logf("on outer iter %d\n", i)
 		statsChan, errorChan, closeChan, err := client.ContainerStats(containerIds[i])
 		if err != nil {
 			t.Fatalf("cannot get stats from server: %s", err.Error())
 		}
 
 		for j, expectedResult := range expectedResults[i] {
-			t.Log("on iter %d\n", j)
+			t.Logf("on iter %d\n", j)
 			select {
 			case containerStats := <-statsChan:
 				if !reflect.DeepEqual(containerStats, expectedResult) {
@@ -188,11 +188,11 @@ func TestContainerStats(t *testing.T) {
 				}
 				break
 			}
-			t.Log("done with iter %d\n", j)
+			t.Logf("done with iter %d\n", j)
 		}
 		closeChan <- struct{}{}
 		close(closeChan)
-		t.Log("done with outer iter %d\n", i)
+		t.Logf("done with outer iter %d\n", i)
 	}
 }
 
