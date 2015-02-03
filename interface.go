@@ -2,8 +2,6 @@ package dockerclient
 
 import (
 	"io"
-
-	"github.com/docker/docker/api/stats"
 )
 
 type Callback func(*Event, chan error, ...interface{})
@@ -22,7 +20,7 @@ type Client interface {
 	// anything is sent on the error channels, then no more stats will be
 	// sent. Users must always send a struct{}{} to the close channel when
 	// they are done reading stats, even if an error was sent.
-	ContainerStats(id string) (<-chan stats.Stats, <-chan error, chan<- struct{}, error)
+	ContainerStats(id string) (<-chan Stats, <-chan error, chan<- struct{}, error)
 	Exec(config *ExecConfig) (string, error)
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error

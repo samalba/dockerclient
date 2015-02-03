@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/api/stats"
 	"github.com/docker/docker/pkg/stdcopy"
 )
 
@@ -159,7 +158,7 @@ func TestContainerLogs(t *testing.T) {
 
 func TestContainerStats(t *testing.T) {
 	client := testDockerClient(t)
-	var expectedContainerStats stats.Stats
+	var expectedContainerStats Stats
 	if err := json.Unmarshal([]byte(statsResp), &expectedContainerStats); err != nil {
 		t.Fatalf("cannot parse expected resp: %s", err.Error())
 	}

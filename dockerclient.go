@@ -14,8 +14,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"github.com/docker/docker/api/stats"
 )
 
 const (
@@ -214,21 +212,21 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 	return changes, nil
 }
 
-func (client *DockerClient) ContainerStats(id string) (<-chan stats.Stats, <-chan error, chan<- struct{}, error) {
+func (client *DockerClient) ContainerStats(id string) (<-chan Stats, <-chan error, chan<- struct{}, error) {
 	uri := fmt.Sprintf("/%s/containers/%s/stats", APIVersion, id)
 	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	statsChan := make(chan stats.Stats)
+	statsChan := make(chan Stats)
 	errorChan := make(chan error)
 	closeChan := make(chan struct{})
 	go func() {
 		defer close(statsChan)
 		defer close(errorChan)
 
-		internalStatsChan := make(chan stats.Stats)
+		internalStatsChan := make(chan Stats)
 		internalErrorChan := make(chan error)
 		defer close(internalStatsChan)
 		defer close(internalErrorChan)
@@ -240,7 +238,7 @@ func (client *DockerClient) ContainerStats(id string) (<-chan stats.Stats, <-cha
 				resp.Body.Close()
 			}()
 			for {
-				var containerStats stats.Stats
+				var containerStats Stats
 				if err := decoder.Decode(&containerStats); err != nil {
 					internalErrorChan <- err
 					return
