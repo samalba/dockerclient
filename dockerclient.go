@@ -308,12 +308,16 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	return nil
 }
 
-func (client *DockerClient) RemoveContainer(id string, force bool) error {
+func (client *DockerClient) RemoveContainer(id string, force, volumes bool) error {
 	argForce := 0
+	argVolumes := 0
 	if force == true {
 		argForce = 1
 	}
-	args := fmt.Sprintf("force=%d", argForce)
+	if volumes == true {
+		argVolumes = 1
+	}
+	args := fmt.Sprintf("force=%d&v=%d", argForce, argVolumes)
 	uri := fmt.Sprintf("/%s/containers/%s?%s", APIVersion, id, args)
 	_, err := client.doRequest("DELETE", uri, nil, nil)
 	return err
