@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -247,7 +246,6 @@ func (client *DockerClient) getEvents(cb Callback, ec chan error, args ...interf
 	uri := fmt.Sprintf("%s/%s/events", client.URL.String(), APIVersion)
 	resp, err := client.HTTPClient.Get(uri)
 	if err != nil {
-		log.Printf("GET %s failed: %v", uri, err)
 		ec <- err
 		return
 	}
@@ -257,7 +255,6 @@ func (client *DockerClient) getEvents(cb Callback, ec chan error, args ...interf
 	for atomic.LoadInt32(&client.monitorEvents) > 0 {
 		var event *Event
 		if err := dec.Decode(&event); err != nil {
-			log.Printf("Event decoding failed: %v", err)
 			ec <- err
 			return
 		}
