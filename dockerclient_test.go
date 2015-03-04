@@ -190,7 +190,6 @@ func TestContainerStats(t *testing.T) {
 			}
 			t.Logf("done with iter %d\n", j)
 		}
-		closeChan <- struct{}{}
 		close(closeChan)
 		t.Logf("done with outer iter %d\n", i)
 	}

@@ -18,8 +18,8 @@ type Client interface {
 	// ContainerStats returns a stats channel, an error channel, and a close
 	// channel. Users should select on the stats and error channels. If
 	// anything is sent on the error channels, then no more stats will be
-	// sent. Users must always send a struct{}{} to the close channel when
-	// they are done reading stats, even if an error was sent.
+	// sent. Users must close the close channel when they are done reading stats,
+	// even if an error was sent.
 	ContainerStats(id string) (<-chan Stats, <-chan error, chan<- struct{}, error)
 	Exec(config *ExecConfig) (string, error)
 	StartContainer(id string, config *HostConfig) error
