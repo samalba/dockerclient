@@ -12,22 +12,18 @@ func newHTTPClient(u *url.URL, tlsConfig *tls.Config, timeout time.Duration) *ht
 	httpTransport := &http.Transport{
 		TLSClientConfig: tlsConfig,
 	}
-
-	switch u.Scheme {
-	default:
-		httpTransport.Dial = func(proto, addr string) (net.Conn, error) {
-			return net.DialTimeout(proto, addr, timeout)
-		}
-	case "unix":
+	if u.Scheme == "unix" {
 		socketPath := u.Path
-		unixDial := func(proto, addr string) (net.Conn, error) {
-			return net.DialTimeout("unix", socketPath, timeout)
+		unixDial := func(proto string, addr string) (net.Conn, error) {
+			return net.Dial("unix", socketPath)
 		}
 		httpTransport.Dial = unixDial
 		// Override the main URL object so the HTTP lib won't complain
 		u.Scheme = "http"
 		u.Host = "unix.sock"
-		u.Path = ""
 	}
-	return &http.Client{Transport: httpTransport}
+	u.Path = ""
+	// The timeout includes connection time, reading the response body.
+	// A Timeout of zero means no timeout.
+	return &http.Client{Transport: httpTransport, Timeout: timeout}
 }
