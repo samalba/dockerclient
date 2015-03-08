@@ -6,6 +6,8 @@ import (
 
 type Callback func(*Event, chan error, ...interface{})
 
+type StatCallback func(string, *Stats, chan error, ...interface{})
+
 type Client interface {
 	Info() (*Info, error)
 	ListContainers(all, size bool, filters string) ([]Container, error)
@@ -19,6 +21,8 @@ type Client interface {
 	KillContainer(id, signal string) error
 	StartMonitorEvents(cb Callback, ec chan error, args ...interface{})
 	StopAllMonitorEvents()
+	StartMonitorStats(id string, cb StatCallback, ec chan error, args ...interface{})
+	StopAllMonitorStats()
 	Version() (*Version, error)
 	PullImage(name string, auth *AuthConfig) error
 	RemoveContainer(id string, force, volumes bool) error
