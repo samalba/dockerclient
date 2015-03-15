@@ -106,6 +106,11 @@ type ContainerInfo struct {
 	HostConfig     *HostConfig
 }
 
+type ContainerChanges struct {
+	Path string
+	Kind int
+}
+
 type Port struct {
 	IP          string
 	PrivatePort int

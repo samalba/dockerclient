@@ -197,6 +197,20 @@ func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.Re
 	return resp.Body, nil
 }
 
+func (client *DockerClient) ContainerChanges(id string) ([]ContainerChanges, error) {
+	uri := fmt.Sprintf("/%s/containers/%s/changes", APIVersion, id)
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	changes := []ContainerChanges{}
+	err = json.Unmarshal(data, &changes)
+	if err != nil {
+		return nil, err
+	}
+	return changes, nil
+}
+
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
 	data, err := json.Marshal(config)
 	if err != nil {
