@@ -230,20 +230,19 @@ type BlkioStats struct {
 	SectorsRecursive        []BlkioStatEntry `json:"sectors_recursive"`
 }
 
-type Network struct {
-	RxBytes   uint64 `json:"rx_bytes"`
-	RxPackets uint64 `json:"rx_packets"`
-	RxErrors  uint64 `json:"rx_errors"`
-	RxDropped uint64 `json:"rx_dropped"`
-	TxBytes   uint64 `json:"tx_bytes"`
-	TxPackets uint64 `json:"tx_packets"`
-	TxErrors  uint64 `json:"tx_errors"`
-	TxDropped uint64 `json:"tx_dropped"`
-}
-
 type Stats struct {
-	Read        time.Time   `json:"read"`
-	Network     Network     `json:"network,omitempty"`
+	Read    time.Time `json:"read"`
+	Network struct {
+		RxBytes   uint64 `json:"rx_bytes"`
+		RxPackets uint64 `json:"rx_packets"`
+		RxErrors  uint64 `json:"rx_errors"`
+		RxDropped uint64 `json:"rx_dropped"`
+		TxBytes   uint64 `json:"tx_bytes"`
+		TxPackets uint64 `json:"tx_packets"`
+		TxErrors  uint64 `json:"tx_errors"`
+		TxDropped uint64 `json:"tx_dropped"`
+	}
+
 	CpuStats    CpuStats    `json:"cpu_stats,omitempty"`
 	MemoryStats MemoryStats `json:"memory_stats,omitempty"`
 	BlkioStats  BlkioStats  `json:"blkio_stats,omitempty"`
