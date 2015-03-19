@@ -40,6 +40,11 @@ func (client *MockClient) ContainerLogs(id string, options *dockerclient.LogOpti
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
+func (client *MockClient) ContainerChanges(id string) (io.ReadCloser, error) {
+	args := client.Mock.Called(id)
+	return args.Get(0).(io.ReadCloser), args.Error(1)
+}
+
 func (client *MockClient) StartContainer(id string, config *dockerclient.HostConfig) error {
 	args := client.Mock.Called(id, config)
 	return args.Error(0)
@@ -88,9 +93,9 @@ func (client *MockClient) ListImages() ([]*dockerclient.Image, error) {
 	return args.Get(0).([]*dockerclient.Image), args.Error(1)
 }
 
-func (client *MockClient) RemoveImage(name string) error {
+func (client *MockClient) RemoveImage(name string) ([]*dockerclient.ImageDelete, error) {
 	args := client.Mock.Called(name)
-	return args.Error(0)
+	return args.Get(0).([]*dockerclient.ImageDelete), args.Error(1)
 }
 
 func (client *MockClient) PauseContainer(name string) error {

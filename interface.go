@@ -12,6 +12,7 @@ type Client interface {
 	InspectContainer(id string) (*ContainerInfo, error)
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
+	ContainerChanges(id string) ([]ContainerChanges, error)
 	Exec(config *ExecConfig) (string, error)
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
@@ -23,7 +24,7 @@ type Client interface {
 	PullImage(name string, auth *AuthConfig) error
 	RemoveContainer(id string, force, volumes bool) error
 	ListImages() ([]*Image, error)
-	RemoveImage(name string) error
+	RemoveImage(name string) ([]*ImageDelete, error)
 	PauseContainer(name string) error
 	UnpauseContainer(name string) error
 }

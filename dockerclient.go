@@ -197,6 +197,20 @@ func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.Re
 	return resp.Body, nil
 }
 
+func (client *DockerClient) ContainerChanges(id string) ([]ContainerChanges, error) {
+	uri := fmt.Sprintf("/%s/containers/%s/changes", APIVersion, id)
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	changes := []ContainerChanges{}
+	err = json.Unmarshal(data, &changes)
+	if err != nil {
+		return nil, err
+	}
+	return changes, nil
+}
+
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
 	data, err := json.Marshal(config)
 	if err != nil {
@@ -333,10 +347,17 @@ func (client *DockerClient) ListImages() ([]*Image, error) {
 	return images, nil
 }
 
-func (client *DockerClient) RemoveImage(name string) error {
+func (client *DockerClient) RemoveImage(name string) ([]*ImageDelete, error) {
 	uri := fmt.Sprintf("/%s/images/%s", APIVersion, name)
-	_, err := client.doRequest("DELETE", uri, nil, nil)
-	return err
+	data, err := client.doRequest("DELETE", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	var imageDelete []*ImageDelete
+	if err := json.Unmarshal(data, &imageDelete); err != nil {
+		return nil, err
+	}
+	return imageDelete, nil
 }
 
 func (client *DockerClient) PauseContainer(id string) error {
