@@ -21,6 +21,7 @@ type ContainerConfig struct {
 	Env             []string
 	Cmd             []string
 	Image           string
+	Labels          map[string]string
 	Volumes         map[string]struct{}
 	WorkingDir      string
 	Entrypoint      []string
