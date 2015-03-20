@@ -73,8 +73,8 @@ func (client *MockClient) StopAllMonitorEvents() {
 	client.Mock.Called()
 }
 
-func (client *MockClient) StartMonitorStats(cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
-	client.Mock.Called(cb, ec, args)
+func (client *MockClient) StartMonitorStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
+	client.Mock.Called(id, cb, ec, args)
 }
 
 func (client *MockClient) StopAllMonitorStats() {
