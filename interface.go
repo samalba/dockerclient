@@ -12,7 +12,7 @@ type Client interface {
 	InspectContainer(id string) (*ContainerInfo, error)
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
-	ContainerChanges(id string) ([]ContainerChanges, error)
+	ContainerChanges(id string) ([]*ContainerChanges, error)
 	Exec(config *ExecConfig) (string, error)
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
