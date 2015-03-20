@@ -40,9 +40,9 @@ func (client *MockClient) ContainerLogs(id string, options *dockerclient.LogOpti
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
-func (client *MockClient) ContainerChanges(id string) (io.ReadCloser, error) {
+func (client *MockClient) ContainerChanges(id string) ([]*dockerclient.ContainerChanges, error) {
 	args := client.Mock.Called(id)
-	return args.Get(0).(io.ReadCloser), args.Error(1)
+	return args.Get(0).([]*dockerclient.ContainerChanges), args.Error(1)
 }
 
 func (client *MockClient) StartContainer(id string, config *dockerclient.HostConfig) error {
