@@ -306,6 +306,33 @@ func (client *DockerClient) getStats(id string, cb StatCallback, ec chan error, 
 	}
 }
 
+func (client *DockerClient) GetStats(id string, statsChan chan Stats, errorChan chan ContainerError, exitChan chan bool) {
+	uri := fmt.Sprintf("%s/%s/containers/%s/stats", client.URL.String(), APIVersion, id)
+	resp, err := client.HTTPClient.Get(uri)
+	if err != nil {
+		errorChan <- ContainerError{Error: err, ContainerId: id}
+		return
+	}
+	defer resp.Body.Close()
+
+	dec := json.NewDecoder(resp.Body)
+	for {
+		select {
+		case <-exitChan:
+			return
+		default:
+			var stats *Stats
+			if err := dec.Decode(&stats); err != nil {
+				errorChan <- ContainerError{Error: err, ContainerId: id}
+				return
+			}
+			stats.ContainerId = id
+			statsChan <- *stats
+		}
+
+	}
+}
+
 func (client *DockerClient) StopAllMonitorStats() {
 	atomic.StoreInt32(&client.monitorStats, 0)
 }

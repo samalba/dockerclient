@@ -31,4 +31,5 @@ type Client interface {
 	RemoveImage(name string) ([]*ImageDelete, error)
 	PauseContainer(name string) error
 	UnpauseContainer(name string) error
+	GetStats(id string, statsChan chan Stats, errorChan chan ContainerError, exitChan chan bool)
 }

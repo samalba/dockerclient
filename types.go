@@ -237,8 +237,9 @@ type BlkioStats struct {
 }
 
 type Stats struct {
-	Read    time.Time `json:"read"`
-	Network struct {
+	ContainerId string
+	Read        time.Time `json:"read"`
+	Network     struct {
 		RxBytes   uint64 `json:"rx_bytes"`
 		RxPackets uint64 `json:"rx_packets"`
 		RxErrors  uint64 `json:"rx_errors"`
@@ -252,4 +253,9 @@ type Stats struct {
 	CpuStats    CpuStats    `json:"cpu_stats,omitempty"`
 	MemoryStats MemoryStats `json:"memory_stats,omitempty"`
 	BlkioStats  BlkioStats  `json:"blkio_stats,omitempty"`
+}
+
+type ContainerError struct {
+	Error       error
+	ContainerId string
 }
