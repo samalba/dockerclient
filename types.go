@@ -158,11 +158,17 @@ type Image struct {
 	VirtualSize int64
 }
 
+type File struct {
+	Name     string
+	Contents []byte
+	Mode     int64
+}
+
 type BuildImage struct {
 	Name           string
 	Remote         string
 	DockerfilePath string
-	Files          map[string]string
+	Files          []File
 	NoCache        bool
 	Pull           bool
 	Remove         bool
