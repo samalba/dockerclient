@@ -355,16 +355,17 @@ func (client *DockerClient) BuildImage(image BuildImage, config *ConfigFile) err
 
 	buf := new(bytes.Buffer)
 	tw := tar.NewWriter(buf)
-	for k, v := range image.Files {
+	for _, v := range image.Files {
 		hdr := &tar.Header{
-			Name: k,
-			Size: int64(len(v)),
+			Name: v.Name,
+			Size: int64(len(v.Contents)),
+			Mode: v.Mode,
 		}
 		err := tw.WriteHeader(hdr)
 		if err != nil {
 			return err
 		}
-		_, err = tw.Write([]byte(v))
+		_, err = tw.Write(v.Contents)
 		if err != nil {
 			return err
 		}
