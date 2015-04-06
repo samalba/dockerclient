@@ -210,6 +210,17 @@ type CpuStats struct {
 	ThrottlingData ThrottlingData `json:"throttling_data,omitempty"`
 }
 
+type NetworkStats struct {
+	RxBytes   uint64 `json:"rx_bytes"`
+	RxPackets uint64 `json:"rx_packets"`
+	RxErrors  uint64 `json:"rx_errors"`
+	RxDropped uint64 `json:"rx_dropped"`
+	TxBytes   uint64 `json:"tx_bytes"`
+	TxPackets uint64 `json:"tx_packets"`
+	TxErrors  uint64 `json:"tx_errors"`
+	TxDropped uint64 `json:"tx_dropped"`
+}
+
 type MemoryStats struct {
 	Usage    uint64            `json:"usage"`
 	MaxUsage uint64            `json:"max_usage"`
@@ -238,19 +249,9 @@ type BlkioStats struct {
 }
 
 type Stats struct {
-	Read    time.Time `json:"read"`
-	Network struct {
-		RxBytes   uint64 `json:"rx_bytes"`
-		RxPackets uint64 `json:"rx_packets"`
-		RxErrors  uint64 `json:"rx_errors"`
-		RxDropped uint64 `json:"rx_dropped"`
-		TxBytes   uint64 `json:"tx_bytes"`
-		TxPackets uint64 `json:"tx_packets"`
-		TxErrors  uint64 `json:"tx_errors"`
-		TxDropped uint64 `json:"tx_dropped"`
-	}
-
-	CpuStats    CpuStats    `json:"cpu_stats,omitempty"`
-	MemoryStats MemoryStats `json:"memory_stats,omitempty"`
-	BlkioStats  BlkioStats  `json:"blkio_stats,omitempty"`
+	Read         time.Time    `json:"read"`
+	NetworkStats NetworkStats `json:"network,omitempty"`
+	CpuStats     CpuStats     `json:"cpu_stats,omitempty"`
+	MemoryStats  MemoryStats  `json:"memory_stats,omitempty"`
+	BlkioStats   BlkioStats   `json:"blkio_stats,omitempty"`
 }
