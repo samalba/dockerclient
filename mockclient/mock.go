@@ -73,6 +73,11 @@ func (client *MockClient) StopAllMonitorEvents() {
 	client.Mock.Called()
 }
 
+func (client *MockClient) TagImage(nameOrID string, repo string, tag string, force bool) error {
+	args := client.Mock.Called(nameOrID, repo, tag, force)
+	return args.Error(0)
+}
+
 func (client *MockClient) StartMonitorStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
 	client.Mock.Called(id, cb, ec, args)
 }

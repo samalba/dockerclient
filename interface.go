@@ -24,6 +24,7 @@ type Client interface {
 	StopAllMonitorEvents()
 	StartMonitorStats(id string, cb StatCallback, ec chan error, args ...interface{})
 	StopAllMonitorStats()
+	TagImage(nameOrID string, repo string, tag string, force bool) error
 	Version() (*Version, error)
 	PullImage(name string, auth *AuthConfig) error
 	RemoveContainer(id string, force, volumes bool) error
