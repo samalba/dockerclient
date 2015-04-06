@@ -43,6 +43,7 @@ type HostConfig struct {
 	Dns             []string
 	DnsSearch       []string
 	VolumesFrom     []string
+	SecurityOpt     []string
 	NetworkMode     string
 	RestartPolicy   RestartPolicy
 }
