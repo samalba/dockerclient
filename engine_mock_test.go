@@ -31,6 +31,7 @@ func init() {
 	r.HandleFunc(baseURL+"/containers/{id}/stats", handleContainerStats).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
 	r.HandleFunc(baseURL+"/images/create", handleImagePull).Methods("POST")
+	r.HandleFunc(baseURL+"/events", handleEvents).Methods("GET")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -237,4 +238,8 @@ func handlerGetContainers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.Write([]byte(body))
+}
+
+func handleEvents(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(eventsResp))
 }

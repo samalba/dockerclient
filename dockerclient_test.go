@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -193,6 +194,41 @@ func TestContainerStats(t *testing.T) {
 		close(closeChan)
 		t.Logf("done with outer iter %d\n", i)
 	}
+}
+
+func TestMonitorEvents(t *testing.T) {
+	client := testDockerClient(t)
+	decoder := json.NewDecoder(bytes.NewBufferString(eventsResp))
+	var expectedEvents []Event
+	for {
+		var event Event
+		if err := decoder.Decode(&event); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				t.Fatalf("cannot parse expected resp: %s", err.Error())
+			}
+		} else {
+			expectedEvents = append(expectedEvents, event)
+		}
+	}
+
+	eventInfoChan, closeChan, err := client.MonitorEvents(nil)
+	if err != nil {
+		t.Fatalf("cannot get events from server: %s", err.Error())
+	}
+
+	for i, expectedEvent := range expectedEvents {
+		t.Logf("on iter %d\n", i)
+		select {
+		case eventInfo := <-eventInfoChan:
+			if eventInfo.Error != nil || eventInfo.Event != expectedEvent {
+				t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", i, eventInfo, expectedEvent)
+			}
+		}
+		t.Logf("done with iter %d\n", i)
+	}
+	close(closeChan)
 }
 
 func TestDockerClientInterface(t *testing.T) {

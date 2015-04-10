@@ -68,6 +68,16 @@ type LogOptions struct {
 	Tail       int64
 }
 
+type MonitorEventsOptions struct {
+	Since   int
+	Until   int
+	Filters *struct {
+		Event     string `json:",omitempty"`
+		Image     string `json:",omitempty"`
+		Container string `json:",omitempty"`
+	}
+}
+
 type RestartPolicy struct {
 	Name              string
 	MaximumRetryCount int64
@@ -179,6 +189,16 @@ type Info struct {
 type ImageDelete struct {
 	Deleted  string
 	Untagged string
+}
+
+type EventOrError struct {
+	Event
+	Error error
+}
+
+type decodingResult struct {
+	result interface{}
+	err    error
 }
 
 // The following are types for the API stats endpoint

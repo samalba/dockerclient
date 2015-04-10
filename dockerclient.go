@@ -263,6 +263,46 @@ func (client *DockerClient) ContainerStats(id string) (<-chan Stats, <-chan erro
 	return statsChan, errorChan, closeChan, nil
 }
 
+func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*json.Decoder) decodingResult) (<-chan decodingResult, chan<- struct{}) {
+	resultChan := make(chan decodingResult)
+	closeChan := make(chan struct{})
+	go func() {
+		defer close(resultChan)
+
+		internalResultsChan := make(chan decodingResult)
+		defer close(internalResultsChan)
+
+		go func() {
+			decoder := json.NewDecoder(stream)
+			defer func() {
+				recover() // ugly but necessary for sending on closed chan
+				stream.Close()
+			}()
+			for {
+				decodeResult := decode(decoder)
+				internalResultsChan <- decodeResult
+				if decodeResult.err != nil {
+					return
+				}
+			}
+		}()
+
+		for {
+			select {
+			case result := <-internalResultsChan:
+				resultChan <- result
+				if result.err != nil {
+					<-closeChan
+					return
+				}
+			case <-closeChan:
+				return
+			}
+		}
+	}()
+	return resultChan, closeChan
+}
+
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
 	data, err := json.Marshal(config)
 	if err != nil {
@@ -301,6 +341,52 @@ func (client *DockerClient) KillContainer(id, signal string) error {
 		return err
 	}
 	return nil
+}
+
+func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan EventOrError, chan<- struct{}, error) {
+	v := url.Values{}
+	if options != nil {
+		if options.Since != 0 {
+			v.Add("since", strconv.Itoa(options.Since))
+		}
+		if options.Until != 0 {
+			v.Add("until", strconv.Itoa(options.Until))
+		}
+		if options.Filters != nil {
+			filterJSONBytes, err := json.Marshal(options.Filters)
+			if err == nil {
+				v.Add("filters", string(filterJSONBytes))
+			}
+		}
+	}
+	uri := fmt.Sprintf("%s/%s/events?%s", client.URL.String(), APIVersion, v.Encode())
+	resp, err := client.HTTPClient.Get(uri)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	decode := func(decoder *json.Decoder) decodingResult {
+		var event Event
+		if err := decoder.Decode(&event); err != nil {
+			fmt.Printf("decode error!: %v, %v\n", event, err)
+			return decodingResult{err: err}
+		} else {
+			return decodingResult{result: event}
+		}
+	}
+	resultChan, closeChan := client.readJSONStream(resp.Body, decode)
+	eventInfoChan := make(chan EventOrError)
+	go func() {
+		for res := range resultChan {
+			event, _ := res.result.(Event)
+			eventInfoChan <- EventOrError{
+				Event: event,
+				Error: res.err,
+			}
+		}
+		close(eventInfoChan)
+	}()
+	return eventInfoChan, closeChan, nil
 }
 
 func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args ...interface{}) {
