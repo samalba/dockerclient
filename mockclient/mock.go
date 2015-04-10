@@ -65,6 +65,11 @@ func (client *MockClient) KillContainer(id, signal string) error {
 	return args.Error(0)
 }
 
+func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptions) (<-chan dockerclient.EventOrError, chan<- struct{}, error) {
+	args := client.Mock.Called(options)
+	return args.Get(0).(<-chan dockerclient.EventOrError), args.Get(1).(chan<- struct{}), args.Error(2)
+}
+
 func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, ec chan error, args ...interface{}) {
 	client.Mock.Called(cb, ec, args)
 }
