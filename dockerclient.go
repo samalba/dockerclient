@@ -368,25 +368,24 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan
 	decode := func(decoder *json.Decoder) decodingResult {
 		var event Event
 		if err := decoder.Decode(&event); err != nil {
-			fmt.Printf("decode error!: %v, %v\n", event, err)
 			return decodingResult{err: err}
 		} else {
 			return decodingResult{result: event}
 		}
 	}
-	resultChan, closeChan := client.readJSONStream(resp.Body, decode)
-	eventInfoChan := make(chan EventOrError)
+	decodingResultChan, closeChan := client.readJSONStream(resp.Body, decode)
+	eventOrErrorChan := make(chan EventOrError)
 	go func() {
-		for res := range resultChan {
-			event, _ := res.result.(Event)
-			eventInfoChan <- EventOrError{
+		for decodingResult := range decodingResultChan {
+			event, _ := decodingResult.result.(Event)
+			eventOrErrorChan <- EventOrError{
 				Event: event,
-				Error: res.err,
+				Error: decodingResult.err,
 			}
 		}
-		close(eventInfoChan)
+		close(eventOrErrorChan)
 	}()
-	return eventInfoChan, closeChan, nil
+	return eventOrErrorChan, closeChan, nil
 }
 
 func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args ...interface{}) {
