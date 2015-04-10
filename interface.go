@@ -20,6 +20,11 @@ type Client interface {
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
 	KillContainer(id, signal string) error
+	// MonitorEvents returns an EventOrError channel and a close channel. If
+	// an error is ever sent, then no more events will be sent. Users must
+	// always close the close channel when they are done reading events,
+	// even if an error was sent.
+	MonitorEvents(options *MonitorEventsOptions) (<-chan EventOrError, chan<- struct{}, error)
 	StartMonitorEvents(cb Callback, ec chan error, args ...interface{})
 	StopAllMonitorEvents()
 	StartMonitorStats(id string, cb StatCallback, ec chan error, args ...interface{})
