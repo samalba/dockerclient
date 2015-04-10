@@ -27,8 +27,8 @@ type Client interface {
 	RestartContainer(id string, timeout int) error
 	KillContainer(id, signal string) error
 	// MonitorEvents returns an EventOrError channel and a close channel. If an
-	// error is ever sent, then no more stats will be sent. Users must
-	// always close the close channel when they are done reading stats, even
+	// error is ever sent, then no more eventswill be sent. Users must
+	// always close the close channel when they are done reading events, even
 	// if an error was sent.
 	MonitorEvents(options *MonitorEventsOptions) (<-chan EventOrError, chan<- struct{}, error)
 	StartMonitorEvents(cb Callback, ec chan error, args ...interface{})
