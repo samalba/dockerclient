@@ -45,9 +45,9 @@ func (client *MockClient) ContainerChanges(id string) ([]*dockerclient.Container
 	return args.Get(0).([]*dockerclient.ContainerChanges), args.Error(1)
 }
 
-func (client *MockClient) ContainerStats(id string) (<-chan dockerclient.Stats, <-chan error, chan<- struct{}, error) {
+func (client *MockClient) ContainerStats(id string) (<-chan dockerclient.StatsOrError, chan<- struct{}, error) {
 	args := client.Mock.Called(id)
-	return args.Get(0).(<-chan dockerclient.Stats), args.Get(1).(<-chan error), args.Get(2).(chan<- struct{}), args.Error(3)
+	return args.Get(0).(<-chan dockerclient.StatsOrError), args.Get(1).(chan<- struct{}), args.Error(2)
 }
 
 func (client *MockClient) StartContainer(id string, config *dockerclient.HostConfig) error {

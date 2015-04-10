@@ -191,6 +191,11 @@ type ImageDelete struct {
 	Untagged string
 }
 
+type StatsOrError struct {
+	Stats
+	Error error
+}
+
 type EventOrError struct {
 	Event
 	Error error

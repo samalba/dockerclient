@@ -164,30 +164,31 @@ func TestContainerStats(t *testing.T) {
 		t.Fatalf("cannot parse expected resp: %s", err.Error())
 	}
 	containerIds := []string{"foobar", "foo"}
-	expectedResults := [][]interface{}{
-		{expectedContainerStats, "error"},
-		{expectedContainerStats, expectedContainerStats},
+	expectedResults := [][]StatsOrError{
+		{{Stats: expectedContainerStats}, {Error: fmt.Errorf("error")}},
+		{{Stats: expectedContainerStats}, {Stats: expectedContainerStats}},
 	}
 
 	for i := range containerIds {
 		t.Logf("on outer iter %d\n", i)
-		statsChan, errorChan, closeChan, err := client.ContainerStats(containerIds[i])
+		statsOrErrorChan, closeChan, err := client.ContainerStats(containerIds[i])
 		if err != nil {
 			t.Fatalf("cannot get stats from server: %s", err.Error())
 		}
 
 		for j, expectedResult := range expectedResults[i] {
 			t.Logf("on iter %d\n", j)
-			select {
-			case containerStats := <-statsChan:
-				if !reflect.DeepEqual(containerStats, expectedResult) {
-					t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", j, containerStats, expectedResult)
+			containerStatsOrError := <-statsOrErrorChan
+			if containerStatsOrError.Error != nil {
+				if expectedResult.Error == nil {
+					t.Fatalf("index %d, got unexpected error %v", j, containerStatsOrError.Error)
+				} else {
+					// don't require error equality
+					continue
 				}
-			case err := <-errorChan:
-				if expectedResult != "error" {
-					t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", j, err, expectedResult)
-				}
-				break
+			}
+			if !reflect.DeepEqual(containerStatsOrError, expectedResult) {
+				t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", j, containerStatsOrError, expectedResult)
 			}
 			t.Logf("done with iter %d\n", j)
 		}

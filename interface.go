@@ -15,12 +15,11 @@ type Client interface {
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
 	ContainerChanges(id string) ([]*ContainerChanges, error)
-	// ContainerStats returns a stats channel, an error channel, and a close
-	// channel. Users should select on the stats and error channels. If
+	// ContainerStats returns a StatsOrError channel and a close channel. If
 	// anything is sent on the error channels, then no more stats will be
-	// sent. Users must close the close channel when they are done reading stats,
-	// even if an error was sent.
-	ContainerStats(id string) (<-chan Stats, <-chan error, chan<- struct{}, error)
+	// sent. Users must always close the close channel when they are done
+	// reading stats, even if an error was sent.
+	ContainerStats(id string) (<-chan StatsOrError, chan<- struct{}, error)
 	Exec(config *ExecConfig) (string, error)
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error

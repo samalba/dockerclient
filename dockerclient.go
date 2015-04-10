@@ -212,55 +212,35 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 	return changes, nil
 }
 
-func (client *DockerClient) ContainerStats(id string) (<-chan Stats, <-chan error, chan<- struct{}, error) {
+func (client *DockerClient) ContainerStats(id string) (<-chan StatsOrError, chan<- struct{}, error) {
 	uri := fmt.Sprintf("/%s/containers/%s/stats", APIVersion, id)
 	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
-	statsChan := make(chan Stats)
-	errorChan := make(chan error, 1)
-	closeChan := make(chan struct{})
+
+	decode := func(decoder *json.Decoder) decodingResult {
+		var containerStats Stats
+		if err := decoder.Decode(&containerStats); err != nil {
+			return decodingResult{err: err}
+		} else {
+			return decodingResult{result: containerStats}
+		}
+	}
+	decodingResultChan, closeChan := client.readJSONStream(resp.Body, decode)
+	statsOrErrorChan := make(chan StatsOrError)
 	go func() {
-		defer close(statsChan)
-		defer close(errorChan)
-
-		internalStatsChan := make(chan Stats)
-		internalErrorChan := make(chan error)
-		defer close(internalStatsChan)
-		defer close(internalErrorChan)
-
-		go func() {
-			decoder := json.NewDecoder(resp.Body)
-			defer func() {
-				recover() // ugly but necessary for sending on closed chan
-				resp.Body.Close()
-			}()
-			for {
-				var containerStats Stats
-				if err := decoder.Decode(&containerStats); err != nil {
-					internalErrorChan <- err
-					return
-				}
-				internalStatsChan <- containerStats
-			}
-		}()
-
-		for {
-			select {
-			case containerStats := <-internalStatsChan:
-				statsChan <- containerStats
-			case err := <-internalErrorChan:
-				errorChan <- err
-				<-closeChan
-				return
-			case <-closeChan:
-				return
+		for decodingResult := range decodingResultChan {
+			stats, _ := decodingResult.result.(Stats)
+			statsOrErrorChan <- StatsOrError{
+				Stats: stats,
+				Error: decodingResult.err,
 			}
 		}
+		close(statsOrErrorChan)
 	}()
-	return statsChan, errorChan, closeChan, nil
+	return statsOrErrorChan, closeChan, nil
 }
 
 func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*json.Decoder) decodingResult) (<-chan decodingResult, chan<- struct{}) {
