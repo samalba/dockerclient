@@ -26,6 +26,7 @@ type Client interface {
 	StopAllMonitorStats()
 	Version() (*Version, error)
 	PullImage(name string, auth *AuthConfig) error
+	LoadImage(reader io.Reader) error
 	RemoveContainer(id string, force, volumes bool) error
 	ListImages() ([]*Image, error)
 	RemoveImage(name string) ([]*ImageDelete, error)

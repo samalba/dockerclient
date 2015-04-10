@@ -349,6 +349,20 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	return nil
 }
 
+func (client *DockerClient) LoadImage(reader io.Reader) error {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	uri := fmt.Sprintf("/%s/images/load", APIVersion)
+	_, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (client *DockerClient) RemoveContainer(id string, force, volumes bool) error {
 	argForce := 0
 	argVolumes := 0
