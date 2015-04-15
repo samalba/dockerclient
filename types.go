@@ -96,8 +96,8 @@ type ContainerInfo struct {
 	}
 	Image           string
 	NetworkSettings struct {
-		IpAddress   string
-		IpPrefixLen int
+		IPAddress   string `json:"IpAddress"`
+		IPPrefixLen int    `json:"IpPrefixLen"`
 		Gateway     string
 		Bridge      string
 		Ports       map[string][]PortBinding
