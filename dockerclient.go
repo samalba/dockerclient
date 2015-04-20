@@ -310,6 +310,20 @@ func (client *DockerClient) StopAllMonitorStats() {
 	atomic.StoreInt32(&client.monitorStats, 0)
 }
 
+func (client *DockerClient) TagImage(nameOrID string, repo string, tag string, force bool) error {
+	v := url.Values{}
+	v.Set("repo", repo)
+	v.Set("tag", tag)
+	if force {
+		v.Set("force", "1")
+	}
+	uri := fmt.Sprintf("/%s/images/%s/tag?%s", APIVersion, nameOrID, v.Encode())
+	if _, err := client.doRequest("POST", uri, nil, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (client *DockerClient) Version() (*Version, error) {
 	uri := fmt.Sprintf("/%s/version", APIVersion)
 	data, err := client.doRequest("GET", uri, nil, nil)
