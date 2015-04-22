@@ -46,6 +46,7 @@ type HostConfig struct {
 	SecurityOpt     []string
 	NetworkMode     string
 	RestartPolicy   RestartPolicy
+	ExtraHosts      []string
 }
 
 type ExecConfig struct {

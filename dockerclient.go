@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	APIVersion = "v1.15"
+	APIVersion = "v1.16"
 )
 
 var (
@@ -457,4 +457,45 @@ func (client *DockerClient) Exec(config *ExecConfig) (string, error) {
 		return "", err
 	}
 	return createExecResp.Id, nil
+}
+
+func (client *DockerClient) GetExecRC(id string, timeout int) (int, error) {
+	//default timeout(when the parm is less than 0) in seconds will be 120.
+	if timeout <= 0 {
+		timeout = 120
+	}
+	rcChan := make(chan int)
+	errChan := make(chan error)
+	go func() {
+		uri := fmt.Sprintf("/exec/%s/json", id)
+		var err error = nil
+		var resp []byte = nil
+		running := true
+		var execInspectResp struct {
+			Running  bool
+			ExitCode int
+		}
+		for running {
+			resp, err = client.doRequest("GET", uri, nil, nil)
+			if err != nil {
+				errChan <- err
+			}
+			if err = json.Unmarshal(resp, &execInspectResp); err != nil {
+				errChan <- err
+			}
+			running = execInspectResp.Running
+			if running {
+				time.Sleep(1 * time.Second)
+			}
+		}
+		rcChan <- execInspectResp.ExitCode
+	}()
+	select {
+	case rc := <-rcChan:
+		return rc, nil
+	case err := <-errChan:
+		return -255, err
+	case <-time.After(time.Duration(timeout) * time.Second):
+		return -255, fmt.Errorf("Failed to get exit code after %d seconds.", timeout)
+	}
 }
