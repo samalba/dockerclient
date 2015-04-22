@@ -130,3 +130,8 @@ func (client *MockClient) Exec(config *dockerclient.ExecConfig) (string, error) 
 	args := client.Mock.Called(config)
 	return args.String(0), args.Error(1)
 }
+
+func (client *MockClient) RenameContainer(oldName string, newName string) error {
+	args := client.Mock.Called(oldName, newName)
+	return args.Error(0)
+}

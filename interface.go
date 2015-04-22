@@ -33,4 +33,5 @@ type Client interface {
 	RemoveImage(name string) ([]*ImageDelete, error)
 	PauseContainer(name string) error
 	UnpauseContainer(name string) error
+	RenameContainer(oldName string, newName string) error
 }
