@@ -462,8 +462,5 @@ func (client *DockerClient) Exec(config *ExecConfig) (string, error) {
 func (client *DockerClient) RenameContainer(oldName string, newName string) error {
 	uri := fmt.Sprintf("/containers/%s/rename?name=%s", oldName, newName)
 	_, err := client.doRequest("POST", uri, nil, nil)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
