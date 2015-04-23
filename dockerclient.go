@@ -458,3 +458,9 @@ func (client *DockerClient) Exec(config *ExecConfig) (string, error) {
 	}
 	return createExecResp.Id, nil
 }
+
+func (client *DockerClient) RenameContainer(oldName string, newName string) error {
+	uri := fmt.Sprintf("/containers/%s/rename?name=%s", oldName, newName)
+	_, err := client.doRequest("POST", uri, nil, nil)
+	return err
+}
