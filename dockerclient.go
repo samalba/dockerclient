@@ -1,7 +1,6 @@
 package dockerclient
 
 import (
-	"archive/tar"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -353,30 +352,7 @@ func (client *DockerClient) BuildImage(image BuildImage, config *ConfigFile) err
 	v.Set("q", "1")
 	uri := fmt.Sprintf("/%s/build?%s", APIVersion, v.Encode())
 
-	buf := new(bytes.Buffer)
-	tw := tar.NewWriter(buf)
-	for _, v := range image.Files {
-		hdr := &tar.Header{
-			Name: v.Name,
-			Size: int64(len(v.Contents)),
-			Mode: v.Mode,
-		}
-		err := tw.WriteHeader(hdr)
-		if err != nil {
-			return err
-		}
-		_, err = tw.Write(v.Contents)
-		if err != nil {
-			return err
-		}
-	}
-	err := tw.Close()
-	if err != nil {
-		return err
-	}
-
-	body := bytes.NewReader(buf.Bytes())
-	req, err := http.NewRequest("POST", client.URL.String()+uri, body)
+	req, err := http.NewRequest("POST", client.URL.String()+uri, image.Tarfile)
 	if config != nil {
 		req.Header.Add("X-Registry-Config", config.encode())
 	}
