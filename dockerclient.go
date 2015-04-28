@@ -97,6 +97,41 @@ func (client *DockerClient) doRequest(method string, path string, body []byte, h
 	return data, nil
 }
 
+func (client *DockerClient) doStreamRequest(method string, path string, in io.Reader, headers map[string]string) (io.ReadCloser, error) {
+	if (method == "POST" || method == "PUT") && in == nil {
+		in = bytes.NewReader([]byte{})
+	}
+	req, err := http.NewRequest(method, client.URL.String()+path, in)
+	if err != nil {
+		return nil, err
+	}
+	if method == "POST" {
+		req.Header.Add("Content-Type", "plain/text")
+	}
+	if headers != nil {
+		for header, value := range headers {
+			req.Header.Add(header, value)
+		}
+	}
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		if !strings.Contains(err.Error(), "connection refused") && client.TLSConfig == nil {
+			return nil, fmt.Errorf("%v. Are you trying to connect to a TLS-enabled daemon without TLS?", err)
+		}
+		return nil, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, Error{StatusCode: resp.StatusCode, Status: resp.Status, msg: string(data)}
+	}
+
+	return resp.Body, nil
+}
+
 func (client *DockerClient) Info() (*Info, error) {
 	uri := fmt.Sprintf("/%s/info", APIVersion)
 	data, err := client.doRequest("GET", uri, nil, nil)
@@ -463,4 +498,26 @@ func (client *DockerClient) RenameContainer(oldName string, newName string) erro
 	uri := fmt.Sprintf("/containers/%s/rename?name=%s", oldName, newName)
 	_, err := client.doRequest("POST", uri, nil, nil)
 	return err
+}
+
+func (client *DockerClient) ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error) {
+	var fromSrc string
+	v := &url.Values{}
+	if source == "" {
+		fromSrc = "-"
+	} else {
+		fromSrc = source
+	}
+
+	v.Set("fromSrc", fromSrc)
+	v.Set("repo", repository)
+	if tag != "" {
+		v.Set("tag", tag)
+	}
+
+	var in io.Reader
+	if fromSrc == "-" {
+		in = tar
+	}
+	return client.doStreamRequest("POST", "/images/create?"+v.Encode(), in, nil)
 }
