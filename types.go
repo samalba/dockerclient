@@ -76,6 +76,13 @@ type PortBinding struct {
 	HostPort string
 }
 
+type NodeInfo struct {
+	Name string
+	Id   string
+	Addr string
+	Ip   string
+}
+
 type ContainerInfo struct {
 	Id      string
 	Created string
@@ -106,6 +113,7 @@ type ContainerInfo struct {
 	ResolvConfPath string
 	Volumes        map[string]string
 	HostConfig     *HostConfig
+	Node           *NodeInfo
 }
 
 type ContainerChanges struct {
