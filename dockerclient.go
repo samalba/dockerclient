@@ -66,7 +66,25 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 
 func (client *DockerClient) doRequest(method string, path string, body []byte, headers map[string]string) ([]byte, error) {
 	b := bytes.NewBuffer(body)
-	req, err := http.NewRequest(method, client.URL.String()+path, b)
+
+	reader, err := client.doStreamRequest(method, path, b, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	defer reader.Close()
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (client *DockerClient) doStreamRequest(method string, path string, in io.Reader, headers map[string]string) (io.ReadCloser, error) {
+	if (method == "POST" || method == "PUT") && in == nil {
+		in = bytes.NewReader([]byte{})
+	}
+	req, err := http.NewRequest(method, client.URL.String()+path, in)
 	if err != nil {
 		return nil, err
 	}
@@ -83,45 +101,11 @@ func (client *DockerClient) doRequest(method string, path string, body []byte, h
 		}
 		return nil, err
 	}
-	defer resp.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
 	if resp.StatusCode == 404 {
 		return nil, ErrNotFound
 	}
 	if resp.StatusCode >= 400 {
-		return nil, Error{StatusCode: resp.StatusCode, Status: resp.Status, msg: string(data)}
-	}
-	return data, nil
-}
-
-func (client *DockerClient) doStreamRequest(method string, path string, in io.Reader, headers map[string]string) (io.ReadCloser, error) {
-	if (method == "POST" || method == "PUT") && in == nil {
-		in = bytes.NewReader([]byte{})
-	}
-	req, err := http.NewRequest(method, client.URL.String()+path, in)
-	if err != nil {
-		return nil, err
-	}
-	if method == "POST" {
-		req.Header.Add("Content-Type", "plain/text")
-	}
-	if headers != nil {
-		for header, value := range headers {
-			req.Header.Add(header, value)
-		}
-	}
-	resp, err := client.HTTPClient.Do(req)
-	if err != nil {
-		if !strings.Contains(err.Error(), "connection refused") && client.TLSConfig == nil {
-			return nil, fmt.Errorf("%v. Are you trying to connect to a TLS-enabled daemon without TLS?", err)
-		}
-		return nil, err
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+		defer resp.Body.Close()
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
