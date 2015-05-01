@@ -4,7 +4,9 @@ Docker client library in Go
 
 Well maintained docker client library.
 
-Example:
+# How to use it?
+
+Here is an example showing how to use it:
 
 ```go
 package main
@@ -68,3 +70,14 @@ func main() {
 	time.Sleep(3600 * time.Second)
 }
 ```
+
+# Maintainers
+
+List of people you can ping for feedback on Pull Requests or any questions.
+
+- [Sam Alba](https://github.com/samalba)
+- [Michael Crosby](https://github.com/crosbymichael)
+- [Andrea Luzzardi](https://github.com/aluzzardi)
+- [Victor Vieux](https://github.com/vieux)
+- [Evan Hazlett](https://github.com/ehazlett)
+- [Donald Huang](https://github.com/donhcd)
