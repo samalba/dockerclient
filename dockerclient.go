@@ -82,7 +82,7 @@ func (client *DockerClient) doRequest(method string, path string, body []byte, h
 
 func (client *DockerClient) doStreamRequest(method string, path string, in io.Reader, headers map[string]string) (io.ReadCloser, error) {
 	if (method == "POST" || method == "PUT") && in == nil {
-		in = bytes.NewReader([]byte{})
+		in = bytes.NewReader(nil)
 	}
 	req, err := http.NewRequest(method, client.URL.String()+path, in)
 	if err != nil {
