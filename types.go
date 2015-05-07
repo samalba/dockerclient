@@ -90,8 +90,11 @@ type ContainerInfo struct {
 		Running    bool
 		Paused     bool
 		Restarting bool
+		OOMKilled  bool
+		Dead       bool
 		Pid        int
 		ExitCode   int
+		Error      string // contains last known error when starting the container
 		StartedAt  time.Time
 		FinishedAt time.Time
 		Ghost      bool
