@@ -1,6 +1,9 @@
 package dockerclient
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 type ContainerConfig struct {
 	Hostname        string
@@ -163,6 +166,17 @@ type Image struct {
 	RepoTags    []string
 	Size        int64
 	VirtualSize int64
+}
+
+type BuildImage struct {
+	Name           string
+	Remote         string
+	DockerfilePath string
+	Tarfile        io.Reader
+	NoCache        bool
+	Pull           bool
+	Remove         bool
+	ForceRemove    bool
 }
 
 type Info struct {

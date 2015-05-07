@@ -357,6 +357,56 @@ func (client *DockerClient) Version() (*Version, error) {
 	return version, nil
 }
 
+func (client *DockerClient) BuildImage(image BuildImage, config *ConfigFile) error {
+	v := url.Values{}
+	if image.DockerfilePath != "" {
+		v.Set("dockerfile", image.DockerfilePath)
+	}
+	if image.Name != "" {
+		v.Set("t", image.Name)
+	}
+	if image.Remote != "" {
+		v.Set("remote", image.Remote)
+	}
+	if image.NoCache {
+		v.Set("nocache", "1")
+	}
+	if image.Pull {
+		v.Set("pull", "1")
+	}
+	if image.Remove {
+		v.Set("rm", "1")
+	} else {
+		v.Set("rm", "0")
+	}
+	if image.ForceRemove {
+		v.Set("forcerm", "1")
+	}
+	v.Set("q", "1")
+	uri := fmt.Sprintf("/%s/build?%s", APIVersion, v.Encode())
+
+	req, err := http.NewRequest("POST", client.URL.String()+uri, image.Tarfile)
+	if config != nil {
+		req.Header.Add("X-Registry-Config", config.encode())
+	}
+	req.Header.Set("Content-Type", "application/tar")
+	resp, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	var finalObj map[string]interface{}
+	for decoder := json.NewDecoder(resp.Body); err == nil; err = decoder.Decode(&finalObj) {
+	}
+	if err != io.EOF {
+		return err
+	}
+	if err, ok := finalObj["error"]; ok {
+		return fmt.Errorf("%v", err)
+	}
+	return nil
+}
+
 func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	v := url.Values{}
 	v.Set("fromImage", name)
