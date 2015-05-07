@@ -99,7 +99,7 @@ type State struct {
 
 // String returns a human-readable description of the state
 // Stoken from docker/docker/daemon/state.go
-func (s *State) Status() string {
+func (s *State) String() string {
 	if s.Running {
 		if s.Paused {
 			return fmt.Sprintf("Up %s (Paused)", units.HumanDuration(time.Now().UTC().Sub(s.StartedAt)))
