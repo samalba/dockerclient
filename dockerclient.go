@@ -252,14 +252,17 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 		internalResultsChan := make(chan decodingResult)
 		defer close(internalResultsChan)
 
+		stillListening := make(chan struct{})
+		defer close(stillListening)
+
 		go func() {
 			decoder := json.NewDecoder(stream)
-			defer func() {
-				recover() // ugly but necessary for sending on closed chan
-				stream.Close()
-			}()
+			defer stream.Close()
 			for {
 				decodeResult := decode(decoder)
+				if _, ok := <-stillListening; !ok {
+					return
+				}
 				internalResultsChan <- decodeResult
 				if decodeResult.err != nil {
 					return
@@ -278,6 +281,7 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 			case <-closeChan:
 				return
 			}
+			stillListening <- struct{}{}
 		}
 	}()
 	return resultChan, closeChan
@@ -333,8 +337,21 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan
 			v.Add("until", strconv.Itoa(options.Until))
 		}
 		if options.Filters != nil {
-			filterJSONBytes, err := json.Marshal(options.Filters)
-			if err == nil {
+			filterMap := make(map[string][]string)
+			if len(options.Filters.Event) > 0 {
+				filterMap["event"] = []string{options.Filters.Event}
+			}
+			if len(options.Filters.Image) > 0 {
+				filterMap["image"] = []string{options.Filters.Image}
+			}
+			if len(options.Filters.Container) > 0 {
+				filterMap["container"] = []string{options.Filters.Container}
+			}
+			if len(filterMap) > 0 {
+				filterJSONBytes, err := json.Marshal(filterMap)
+				if err != nil {
+					return nil, nil, err
+				}
 				v.Add("filters", string(filterJSONBytes))
 			}
 		}
