@@ -198,9 +198,13 @@ type Event struct {
 }
 
 type Version struct {
-	Version   string
-	GitCommit string
-	GoVersion string
+	ApiVersion    string
+	Arch          string
+	GitCommit     string
+	GoVersion     string
+	KernelVersion string
+	Os            string
+	Version       string
 }
 
 type RespContainersCreate struct {
