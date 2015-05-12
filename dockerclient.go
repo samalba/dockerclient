@@ -240,6 +240,7 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 		}()
 
 		for {
+			stillListening <- struct{}{}
 			select {
 			case result := <-internalResultsChan:
 				resultChan <- result
@@ -250,7 +251,6 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 			case <-closeChan:
 				return
 			}
-			stillListening <- struct{}{}
 		}
 	}()
 	return resultChan, closeChan
