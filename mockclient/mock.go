@@ -3,7 +3,7 @@ package mockclient
 import (
 	"io"
 
-	"github.com/samalba/dockerclient"
+	"github.com/donhcd/dockerclient"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -65,9 +65,9 @@ func (client *MockClient) KillContainer(id, signal string) error {
 	return args.Error(0)
 }
 
-func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptions) (<-chan dockerclient.EventOrError, chan<- struct{}, error) {
-	args := client.Mock.Called(options)
-	return args.Get(0).(<-chan dockerclient.EventOrError), args.Get(1).(chan<- struct{}), args.Error(2)
+func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptions, stopChan <-chan struct{}) (<-chan dockerclient.EventOrError, error) {
+	args := client.Mock.Called(options, stopChan)
+	return args.Get(0).(<-chan dockerclient.EventOrError), args.Error(1)
 }
 
 func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, ec chan error, args ...interface{}) {
