@@ -233,37 +233,19 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 
 func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*json.Decoder) decodingResult, stopChan <-chan struct{}) <-chan decodingResult {
 	resultChan := make(chan decodingResult)
-	internalResultsChan := make(chan decodingResult)
-	stillListening := make(chan struct{})
 
 	go func() {
 		decoder := json.NewDecoder(stream)
 		defer stream.Close()
+		defer close(resultChan)
 		for {
 			decodeResult := decode(decoder)
-			if _, ok := <-stillListening; !ok {
-				return
-			}
-			internalResultsChan <- decodeResult
-			if decodeResult.err != nil {
-				return
-			}
-		}
-	}()
-
-	go func() {
-		defer close(resultChan)
-		defer close(internalResultsChan)
-		defer close(stillListening)
-		for {
 			select {
 			case <-stopChan:
 				return
 			default:
-				stillListening <- struct{}{}
-				result := <-internalResultsChan
-				resultChan <- result
-				if result.err != nil {
+				resultChan <- decodeResult
+				if decodeResult.err != nil {
 					return
 				}
 			}
