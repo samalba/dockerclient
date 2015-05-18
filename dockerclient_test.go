@@ -174,22 +174,39 @@ func TestMonitorEvents(t *testing.T) {
 		}
 	}
 
-	eventInfoChan, closeChan, err := client.MonitorEvents(nil)
+	// test passing stop chan
+	stopChan := make(chan struct{})
+	eventInfoChan, err := client.MonitorEvents(nil, stopChan)
+	if err != nil {
+		t.Fatalf("cannot get events from server: %s", err.Error())
+	}
+
+	eventInfo := <-eventInfoChan
+	if eventInfo.Error != nil || eventInfo.Event != expectedEvents[0] {
+		t.Fatalf("got:\n%#v\nexpected:\n%#v", eventInfo, expectedEvents[0])
+	}
+	close(stopChan)
+	for i := 0; i < 3; i++ {
+		_, ok := <-eventInfoChan
+		if i == 2 && ok {
+			t.Fatalf("read more than 2 events successfully after closing stopChan")
+		}
+	}
+
+	// test when you don't pass stop chan
+	eventInfoChan, err = client.MonitorEvents(nil, nil)
 	if err != nil {
 		t.Fatalf("cannot get events from server: %s", err.Error())
 	}
 
 	for i, expectedEvent := range expectedEvents {
 		t.Logf("on iter %d\n", i)
-		select {
-		case eventInfo := <-eventInfoChan:
-			if eventInfo.Error != nil || eventInfo.Event != expectedEvent {
-				t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", i, eventInfo, expectedEvent)
-			}
+		eventInfo := <-eventInfoChan
+		if eventInfo.Error != nil || eventInfo.Event != expectedEvent {
+			t.Fatalf("index %d, got:\n%#v\nexpected:\n%#v", i, eventInfo, expectedEvent)
 		}
 		t.Logf("done with iter %d\n", i)
 	}
-	close(closeChan)
 }
 
 func TestDockerClientInterface(t *testing.T) {
