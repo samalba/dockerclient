@@ -382,6 +382,20 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	return nil
 }
 
+func (client *DockerClient) InspectImage(id string) (*ImageInfo, error) {
+	uri := fmt.Sprintf("/%s/images/%s/json", APIVersion, id)
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	info := &ImageInfo{}
+	err = json.Unmarshal(data, info)
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
 func (client *DockerClient) LoadImage(reader io.Reader) error {
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {

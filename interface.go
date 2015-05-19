@@ -12,6 +12,7 @@ type Client interface {
 	Info() (*Info, error)
 	ListContainers(all, size bool, filters string) ([]Container, error)
 	InspectContainer(id string) (*ContainerInfo, error)
+	InspectImage(id string) (*ImageInfo, error)
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
 	ContainerChanges(id string) ([]*ContainerChanges, error)
