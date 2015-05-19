@@ -20,6 +20,7 @@ type ContainerConfig struct {
 	AttachStderr    bool
 	PortSpecs       []string
 	ExposedPorts    map[string]struct{}
+	MacAddress      string
 	Tty             bool
 	OpenStdin       bool
 	StdinOnce       bool
@@ -140,6 +141,22 @@ func (s *State) StateString() string {
 	}
 
 	return "exited"
+}
+
+type ImageInfo struct {
+	Architecture    string
+	Author          string
+	Comment         string
+	Config          *ContainerConfig
+	Container       string
+	ContainerConfig *ContainerConfig
+	Created         time.Time
+	DockerVersion   string
+	Id              string
+	Os              string
+	Parent          string
+	Size            int64
+	VirtualSize     int64
 }
 
 type ContainerInfo struct {
