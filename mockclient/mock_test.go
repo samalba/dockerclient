@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/donhcd/dockerclient"
+	"github.com/samalba/dockerclient"
 )
 
 func TestMock(t *testing.T) {
