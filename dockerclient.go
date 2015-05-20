@@ -66,7 +66,25 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 
 func (client *DockerClient) doRequest(method string, path string, body []byte, headers map[string]string) ([]byte, error) {
 	b := bytes.NewBuffer(body)
-	req, err := http.NewRequest(method, client.URL.String()+path, b)
+
+	reader, err := client.doStreamRequest(method, path, b, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	defer reader.Close()
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (client *DockerClient) doStreamRequest(method string, path string, in io.Reader, headers map[string]string) (io.ReadCloser, error) {
+	if (method == "POST" || method == "PUT") && in == nil {
+		in = bytes.NewReader(nil)
+	}
+	req, err := http.NewRequest(method, client.URL.String()+path, in)
 	if err != nil {
 		return nil, err
 	}
@@ -83,18 +101,19 @@ func (client *DockerClient) doRequest(method string, path string, body []byte, h
 		}
 		return nil, err
 	}
-	defer resp.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
 	if resp.StatusCode == 404 {
 		return nil, ErrNotFound
 	}
 	if resp.StatusCode >= 400 {
+		defer resp.Body.Close()
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
 		return nil, Error{StatusCode: resp.StatusCode, Status: resp.Status, msg: string(data)}
 	}
-	return data, nil
+
+	return resp.Body, nil
 }
 
 func (client *DockerClient) Info() (*Info, error) {
@@ -212,12 +231,12 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 	return changes, nil
 }
 
-func (client *DockerClient) ContainerStats(id string) (<-chan StatsOrError, chan<- struct{}, error) {
+func (client *DockerClient) ContainerStats(id string, stopChan <-chan struct{}) (<-chan StatsOrError, error) {
 	uri := fmt.Sprintf("/%s/containers/%s/stats", APIVersion, id)
 	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	decode := func(decoder *json.Decoder) decodingResult {
@@ -228,7 +247,7 @@ func (client *DockerClient) ContainerStats(id string) (<-chan StatsOrError, chan
 			return decodingResult{result: containerStats}
 		}
 	}
-	decodingResultChan, closeChan := client.readJSONStream(resp.Body, decode)
+	decodingResultChan := client.readJSONStream(resp.Body, decode, stopChan)
 	statsOrErrorChan := make(chan StatsOrError)
 	go func() {
 		for decodingResult := range decodingResultChan {
@@ -240,51 +259,31 @@ func (client *DockerClient) ContainerStats(id string) (<-chan StatsOrError, chan
 		}
 		close(statsOrErrorChan)
 	}()
-	return statsOrErrorChan, closeChan, nil
+	return statsOrErrorChan, nil
 }
 
-func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*json.Decoder) decodingResult) (<-chan decodingResult, chan<- struct{}) {
+func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*json.Decoder) decodingResult, stopChan <-chan struct{}) <-chan decodingResult {
 	resultChan := make(chan decodingResult)
-	closeChan := make(chan struct{})
+
 	go func() {
+		decoder := json.NewDecoder(stream)
+		defer stream.Close()
 		defer close(resultChan)
-
-		internalResultsChan := make(chan decodingResult)
-		defer close(internalResultsChan)
-
-		stillListening := make(chan struct{})
-		defer close(stillListening)
-
-		go func() {
-			decoder := json.NewDecoder(stream)
-			defer stream.Close()
-			for {
-				decodeResult := decode(decoder)
-				if _, ok := <-stillListening; !ok {
-					return
-				}
-				internalResultsChan <- decodeResult
+		for {
+			decodeResult := decode(decoder)
+			select {
+			case <-stopChan:
+				return
+			default:
+				resultChan <- decodeResult
 				if decodeResult.err != nil {
 					return
 				}
 			}
-		}()
-
-		for {
-			stillListening <- struct{}{}
-			select {
-			case result := <-internalResultsChan:
-				resultChan <- result
-				if result.err != nil {
-					<-closeChan
-					return
-				}
-			case <-closeChan:
-				return
-			}
 		}
 	}()
-	return resultChan, closeChan
+
+	return resultChan
 }
 
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
@@ -327,7 +326,7 @@ func (client *DockerClient) KillContainer(id, signal string) error {
 	return nil
 }
 
-func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan EventOrError, chan<- struct{}, error) {
+func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions, stopChan <-chan struct{}) (<-chan EventOrError, error) {
 	v := url.Values{}
 	if options != nil {
 		if options.Since != 0 {
@@ -350,7 +349,7 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan
 			if len(filterMap) > 0 {
 				filterJSONBytes, err := json.Marshal(filterMap)
 				if err != nil {
-					return nil, nil, err
+					return nil, err
 				}
 				v.Add("filters", string(filterJSONBytes))
 			}
@@ -359,7 +358,7 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan
 	uri := fmt.Sprintf("%s/%s/events?%s", client.URL.String(), APIVersion, v.Encode())
 	resp, err := client.HTTPClient.Get(uri)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	decode := func(decoder *json.Decoder) decodingResult {
@@ -370,7 +369,7 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan
 			return decodingResult{result: event}
 		}
 	}
-	decodingResultChan, closeChan := client.readJSONStream(resp.Body, decode)
+	decodingResultChan := client.readJSONStream(resp.Body, decode, stopChan)
 	eventOrErrorChan := make(chan EventOrError)
 	go func() {
 		for decodingResult := range decodingResultChan {
@@ -382,7 +381,7 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions) (<-chan
 		}
 		close(eventOrErrorChan)
 	}()
-	return eventOrErrorChan, closeChan, nil
+	return eventOrErrorChan, nil
 }
 
 func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args ...interface{}) {
@@ -443,6 +442,20 @@ func (client *DockerClient) StopAllMonitorStats() {
 	atomic.StoreInt32(&client.monitorStats, 0)
 }
 
+func (client *DockerClient) TagImage(nameOrID string, repo string, tag string, force bool) error {
+	v := url.Values{}
+	v.Set("repo", repo)
+	v.Set("tag", tag)
+	if force {
+		v.Set("force", "1")
+	}
+	uri := fmt.Sprintf("/%s/images/%s/tag?%s", APIVersion, nameOrID, v.Encode())
+	if _, err := client.doRequest("POST", uri, nil, nil); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (client *DockerClient) Version() (*Version, error) {
 	uri := fmt.Sprintf("/%s/version", APIVersion)
 	data, err := client.doRequest("GET", uri, nil, nil)
@@ -478,6 +491,34 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	}
 	if err, ok := finalObj["error"]; ok {
 		return fmt.Errorf("%v", err)
+	}
+	return nil
+}
+
+func (client *DockerClient) InspectImage(id string) (*ImageInfo, error) {
+	uri := fmt.Sprintf("/%s/images/%s/json", APIVersion, id)
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	info := &ImageInfo{}
+	err = json.Unmarshal(data, info)
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
+func (client *DockerClient) LoadImage(reader io.Reader) error {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return err
+	}
+
+	uri := fmt.Sprintf("/%s/images/load", APIVersion)
+	_, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -562,4 +603,32 @@ func (client *DockerClient) Exec(config *ExecConfig) (string, error) {
 		return "", err
 	}
 	return createExecResp.Id, nil
+}
+
+func (client *DockerClient) RenameContainer(oldName string, newName string) error {
+	uri := fmt.Sprintf("/containers/%s/rename?name=%s", oldName, newName)
+	_, err := client.doRequest("POST", uri, nil, nil)
+	return err
+}
+
+func (client *DockerClient) ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error) {
+	var fromSrc string
+	v := &url.Values{}
+	if source == "" {
+		fromSrc = "-"
+	} else {
+		fromSrc = source
+	}
+
+	v.Set("fromSrc", fromSrc)
+	v.Set("repo", repository)
+	if tag != "" {
+		v.Set("tag", tag)
+	}
+
+	var in io.Reader
+	if fromSrc == "-" {
+		in = tar
+	}
+	return client.doStreamRequest("POST", "/images/create?"+v.Encode(), in, nil)
 }

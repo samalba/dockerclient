@@ -1,7 +1,10 @@
 package dockerclient
 
 import (
+	"fmt"
 	"time"
+
+	"github.com/docker/docker/pkg/units"
 )
 
 type ContainerConfig struct {
@@ -17,6 +20,7 @@ type ContainerConfig struct {
 	AttachStderr    bool
 	PortSpecs       []string
 	ExposedPorts    map[string]struct{}
+	MacAddress      string
 	Tty             bool
 	OpenStdin       bool
 	StdinOnce       bool
@@ -48,6 +52,8 @@ type HostConfig struct {
 	SecurityOpt     []string
 	NetworkMode     string
 	RestartPolicy   RestartPolicy
+	Ulimits         []Ulimit
+	LogConfig       LogConfig
 }
 
 type ExecConfig struct {
@@ -90,28 +96,94 @@ type PortBinding struct {
 	HostPort string
 }
 
-type ContainerInfo struct {
-	Id      string
-	Created string
-	Path    string
-	Name    string
-	Args    []string
-	ExecIDs []string
-	Config  *ContainerConfig
-	State   struct {
-		Running    bool
-		Paused     bool
-		Restarting bool
-		Pid        int
-		ExitCode   int
-		StartedAt  time.Time
-		FinishedAt time.Time
-		Ghost      bool
+type State struct {
+	Running    bool
+	Paused     bool
+	Restarting bool
+	OOMKilled  bool
+	Dead       bool
+	Pid        int
+	ExitCode   int
+	Error      string // contains last known error when starting the container
+	StartedAt  time.Time
+	FinishedAt time.Time
+	Ghost      bool
+}
+
+// String returns a human-readable description of the state
+// Stoken from docker/docker/daemon/state.go
+func (s *State) String() string {
+	if s.Running {
+		if s.Paused {
+			return fmt.Sprintf("Up %s (Paused)", units.HumanDuration(time.Now().UTC().Sub(s.StartedAt)))
+		}
+		if s.Restarting {
+			return fmt.Sprintf("Restarting (%d) %s ago", s.ExitCode, units.HumanDuration(time.Now().UTC().Sub(s.FinishedAt)))
+		}
+
+		return fmt.Sprintf("Up %s", units.HumanDuration(time.Now().UTC().Sub(s.StartedAt)))
 	}
+
+	if s.Dead {
+		return "Dead"
+	}
+
+	if s.FinishedAt.IsZero() {
+		return ""
+	}
+
+	return fmt.Sprintf("Exited (%d) %s ago", s.ExitCode, units.HumanDuration(time.Now().UTC().Sub(s.FinishedAt)))
+}
+
+// StateString returns a single string to describe state
+// Stoken from docker/docker/daemon/state.go
+func (s *State) StateString() string {
+	if s.Running {
+		if s.Paused {
+			return "paused"
+		}
+		if s.Restarting {
+			return "restarting"
+		}
+		return "running"
+	}
+
+	if s.Dead {
+		return "dead"
+	}
+
+	return "exited"
+}
+
+type ImageInfo struct {
+	Architecture    string
+	Author          string
+	Comment         string
+	Config          *ContainerConfig
+	Container       string
+	ContainerConfig *ContainerConfig
+	Created         time.Time
+	DockerVersion   string
+	Id              string
+	Os              string
+	Parent          string
+	Size            int64
+	VirtualSize     int64
+}
+
+type ContainerInfo struct {
+	Id              string
+	Created         string
+	Path            string
+	Name            string
+	Args            []string
+	ExecIDs         []string
+	Config          *ContainerConfig
+	State           *State
 	Image           string
 	NetworkSettings struct {
-		IpAddress   string
-		IpPrefixLen int
+		IPAddress   string `json:"IpAddress"`
+		IPPrefixLen int    `json:"IpPrefixLen"`
 		Gateway     string
 		Bridge      string
 		Ports       map[string][]PortBinding
@@ -144,6 +216,7 @@ type Container struct {
 	Ports      []Port
 	SizeRw     int64
 	SizeRootFs int64
+	Labels     map[string]string
 }
 
 type Event struct {
@@ -154,9 +227,13 @@ type Event struct {
 }
 
 type Version struct {
-	Version   string
-	GitCommit string
-	GoVersion string
+	ApiVersion    string
+	Arch          string
+	GitCommit     string
+	GoVersion     string
+	KernelVersion string
+	Os            string
+	Version       string
 }
 
 type RespContainersCreate struct {
@@ -173,19 +250,38 @@ type Image struct {
 	VirtualSize int64
 }
 
+// Info is the struct returned by /info
+// The API is currently in flux, so Debug, MemoryLimit, SwapLimit, and
+// IPv4Forwarding are interfaces because in docker 1.6.1 they are 0 or 1 but in
+// master they are bools.
 type Info struct {
-	ID              string
-	Containers      int64
-	Driver          string
-	DriverStatus    [][]string
-	ExecutionDriver string
-	Images          int64
-	KernelVersion   string
-	OperatingSystem string
-	NCPU            int64
-	MemTotal        int64
-	Name            string
-	Labels          []string
+	ID                 string
+	Containers         int64
+	Driver             string
+	DriverStatus       [][]string
+	ExecutionDriver    string
+	Images             int64
+	KernelVersion      string
+	OperatingSystem    string
+	NCPU               int64
+	MemTotal           int64
+	Name               string
+	Labels             []string
+	Debug              interface{}
+	NFd                int64
+	NGoroutines        int64
+	SystemTime         time.Time
+	NEventsListener    int64
+	InitPath           string
+	InitSha1           string
+	IndexServerAddress string
+	MemoryLimit        interface{}
+	SwapLimit          interface{}
+	IPv4Forwarding     interface{}
+	DockerRootDir      string
+	HttpProxy          string
+	HttpsProxy         string
+	NoProxy            string
 }
 
 type ImageDelete struct {
@@ -284,4 +380,15 @@ type Stats struct {
 	CpuStats     CpuStats     `json:"cpu_stats,omitempty"`
 	MemoryStats  MemoryStats  `json:"memory_stats,omitempty"`
 	BlkioStats   BlkioStats   `json:"blkio_stats,omitempty"`
+}
+
+type Ulimit struct {
+	Name string `json:"name"`
+	Soft uint64 `json:"soft"`
+	Hard uint64 `json:"hard"`
+}
+
+type LogConfig struct {
+	Type   string            `json:"type"`
+	Config map[string]string `json:"config"`
 }

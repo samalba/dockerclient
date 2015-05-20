@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/jsonlog"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/docker/pkg/timeutils"
-	"github.com/docker/docker/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -76,7 +76,7 @@ func handleImagePull(w http.ResponseWriter, r *http.Request) {
 
 func handleContainerLogs(w http.ResponseWriter, r *http.Request) {
 	var outStream, errStream io.Writer
-	outStream = utils.NewWriteFlusher(w)
+	outStream = ioutils.NewWriteFlusher(w)
 
 	// not sure how to test follow
 	if err := r.ParseForm(); err != nil {

@@ -30,6 +30,11 @@ func (client *MockClient) InspectContainer(id string) (*dockerclient.ContainerIn
 	return args.Get(0).(*dockerclient.ContainerInfo), args.Error(1)
 }
 
+func (client *MockClient) InspectImage(id string) (*dockerclient.ImageInfo, error) {
+	args := client.Mock.Called(id)
+	return args.Get(0).(*dockerclient.ImageInfo), args.Error(1)
+}
+
 func (client *MockClient) CreateContainer(config *dockerclient.ContainerConfig, name string) (string, error) {
 	args := client.Mock.Called(config, name)
 	return args.String(0), args.Error(1)
@@ -45,9 +50,9 @@ func (client *MockClient) ContainerChanges(id string) ([]*dockerclient.Container
 	return args.Get(0).([]*dockerclient.ContainerChanges), args.Error(1)
 }
 
-func (client *MockClient) ContainerStats(id string) (<-chan dockerclient.StatsOrError, chan<- struct{}, error) {
-	args := client.Mock.Called(id)
-	return args.Get(0).(<-chan dockerclient.StatsOrError), args.Get(1).(chan<- struct{}), args.Error(2)
+func (client *MockClient) ContainerStats(id string, stopChan <-chan struct{}) (<-chan dockerclient.StatsOrError, error) {
+	args := client.Mock.Called(id, stopChan)
+	return args.Get(0).(<-chan dockerclient.StatsOrError), args.Error(1)
 }
 
 func (client *MockClient) StartContainer(id string, config *dockerclient.HostConfig) error {
@@ -70,9 +75,9 @@ func (client *MockClient) KillContainer(id, signal string) error {
 	return args.Error(0)
 }
 
-func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptions) (<-chan dockerclient.EventOrError, chan<- struct{}, error) {
-	args := client.Mock.Called(options)
-	return args.Get(0).(<-chan dockerclient.EventOrError), args.Get(1).(chan<- struct{}), args.Error(2)
+func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptions, stopChan <-chan struct{}) (<-chan dockerclient.EventOrError, error) {
+	args := client.Mock.Called(options, stopChan)
+	return args.Get(0).(<-chan dockerclient.EventOrError), args.Error(1)
 }
 
 func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, ec chan error, args ...interface{}) {
@@ -81,6 +86,11 @@ func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, ec chan e
 
 func (client *MockClient) StopAllMonitorEvents() {
 	client.Mock.Called()
+}
+
+func (client *MockClient) TagImage(nameOrID string, repo string, tag string, force bool) error {
+	args := client.Mock.Called(nameOrID, repo, tag, force)
+	return args.Error(0)
 }
 
 func (client *MockClient) StartMonitorStats(id string, cb dockerclient.StatCallback, ec chan error, args ...interface{}) {
@@ -98,6 +108,11 @@ func (client *MockClient) Version() (*dockerclient.Version, error) {
 
 func (client *MockClient) PullImage(name string, auth *dockerclient.AuthConfig) error {
 	args := client.Mock.Called(name, auth)
+	return args.Error(0)
+}
+
+func (client *MockClient) LoadImage(reader io.Reader) error {
+	args := client.Mock.Called(reader)
 	return args.Error(0)
 }
 
@@ -129,4 +144,14 @@ func (client *MockClient) UnpauseContainer(name string) error {
 func (client *MockClient) Exec(config *dockerclient.ExecConfig) (string, error) {
 	args := client.Mock.Called(config)
 	return args.String(0), args.Error(1)
+}
+
+func (client *MockClient) RenameContainer(oldName string, newName string) error {
+	args := client.Mock.Called(oldName, newName)
+	return args.Error(0)
+}
+
+func (client *MockClient) ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error) {
+	args := client.Mock.Called(source, repository, tag, tar)
+	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
