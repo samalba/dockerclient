@@ -157,6 +157,48 @@ func (client *DockerClient) ListContainers(all bool, size bool, filters string) 
 	return ret, nil
 }
 
+// ListContainersWithOptions behaves like ListContainers but allowing additionnal options
+func (client *DockerClient) ListContainersWithOptions(all, size bool, limit, since, before, filters string) ([]Container, error) {
+	argAll := 0
+	if all == true {
+		argAll = 1
+	}
+	showSize := 0
+	if size == true {
+		showSize = 1
+	}
+
+	uri := fmt.Sprintf("/%s/containers/json?all=%d&size=%d", APIVersion, argAll, showSize)
+
+	if limit != "" {
+		uri += "&limit=" + limit
+	}
+
+	if since != "" {
+		uri += "&since=" + since
+	}
+
+	if before != "" {
+		uri += "&before=" + before
+	}
+
+	if filters != "" {
+		uri += "&filters=" + filters
+	}
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := []Container{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+	return nil, nil
+}
+
 func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) {
 	uri := fmt.Sprintf("/%s/containers/%s/json", APIVersion, id)
 	data, err := client.doRequest("GET", uri, nil, nil)
