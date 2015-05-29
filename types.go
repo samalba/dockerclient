@@ -29,6 +29,7 @@ type ContainerConfig struct {
 	Image           string
 	Labels          map[string]string
 	Volumes         map[string]struct{}
+	VolumesFrom     []string
 	WorkingDir      string
 	Entrypoint      []string
 	NetworkDisabled bool
