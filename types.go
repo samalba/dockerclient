@@ -42,6 +42,10 @@ type HostConfig struct {
 	Binds           []string
 	ContainerIDFile string
 	LxcConf         []map[string]string
+	Memory          int64
+	MemorySwap      int64
+	CpuShares       int64
+	CpusetCpus      string
 	Privileged      bool
 	PortBindings    map[string][]PortBinding
 	Links           []string
