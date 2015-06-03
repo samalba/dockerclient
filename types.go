@@ -186,11 +186,17 @@ type ContainerInfo struct {
 	State           *State
 	Image           string
 	NetworkSettings struct {
-		IPAddress   string `json:"IpAddress"`
-		IPPrefixLen int    `json:"IpPrefixLen"`
-		Gateway     string
-		Bridge      string
-		Ports       map[string][]PortBinding
+		IPAddress              string `json:"IpAddress"`
+		IPPrefixLen            int    `json:"IpPrefixLen"`
+		Gateway                string
+		Bridge                 string
+		Ports                  map[string][]PortBinding
+		MacAddress             string
+		LinkLocalIPv6Address   string
+		LinkLocalIPv6PrefixLen int
+		GlobalIPv6Address      string
+		GlobalIPv6PrefixLen    int
+		IPv6Gateway            string
 	}
 	SysInitPath    string
 	ResolvConfPath string
