@@ -580,7 +580,7 @@ func (client *DockerClient) RenameContainer(oldName string, newName string) erro
 	return err
 }
 
-func (client *DockerClient) ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error) {
+func (client *DockerClient) ImportImage(source string, repository string, tag string, changes *[]string, tar io.Reader) (io.ReadCloser, error) {
 	var fromSrc string
 	v := &url.Values{}
 	if source == "" {
@@ -593,6 +593,9 @@ func (client *DockerClient) ImportImage(source string, repository string, tag st
 	v.Set("repo", repository)
 	if tag != "" {
 		v.Set("tag", tag)
+	}
+	for _, change := range *changes {
+		v.Add("changes", change)
 	}
 
 	var in io.Reader
