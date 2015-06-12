@@ -30,7 +30,6 @@ type DockerClient struct {
 	URL           *url.URL
 	HTTPClient    *http.Client
 	TLSConfig     *tls.Config
-	monitorEvents int32
 	monitorStats  int32
 	eventStopChan chan (struct{})
 }
@@ -62,7 +61,7 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 		}
 	}
 	httpClient := newHTTPClient(u, tlsConfig, timeout)
-	return &DockerClient{u, httpClient, tlsConfig, 0, 0, nil}, nil
+	return &DockerClient{u, httpClient, tlsConfig, 0, nil}, nil
 }
 
 func (client *DockerClient) doRequest(method string, path string, body []byte, headers map[string]string) ([]byte, error) {
@@ -363,39 +362,21 @@ func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args 
 		return
 	}
 
-	for {
-		e := <-eventErrChan
-		if e.Error != nil {
-			ec <- err
-			continue
+	go func() {
+		for {
+			e := <-eventErrChan
+			if e.Error != nil {
+				ec <- err
+				continue
+			}
+
+			go cb(&e.Event, ec, args...)
 		}
-
-		go cb(&e.Event, ec, args...)
-	}
-}
-
-func (client *DockerClient) getEvents(cb Callback, ec chan error, args ...interface{}) {
-	uri := fmt.Sprintf("%s/%s/events", client.URL.String(), APIVersion)
-	resp, err := client.HTTPClient.Get(uri)
-	if err != nil {
-		ec <- err
-		return
-	}
-	defer resp.Body.Close()
-
-	dec := json.NewDecoder(resp.Body)
-	for atomic.LoadInt32(&client.monitorEvents) > 0 {
-		var event *Event
-		if err := dec.Decode(&event); err != nil {
-			ec <- err
-			return
-		}
-		cb(event, ec, args...)
-	}
+	}()
 }
 
 func (client *DockerClient) StopAllMonitorEvents() {
-	client.eventStopChan <- struct{}{}
+	close(client.eventStopChan)
 }
 
 func (client *DockerClient) StartMonitorStats(id string, cb StatCallback, ec chan error, args ...interface{}) {
