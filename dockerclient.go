@@ -237,16 +237,23 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 
 	go func() {
 		decoder := json.NewDecoder(stream)
-		defer stream.Close()
+		stopped := make(chan struct{})
+		go func() {
+			<-stopChan
+			stream.Close()
+			stopped <- struct{}{}
+		}()
+
 		defer close(resultChan)
 		for {
 			decodeResult := decode(decoder)
 			select {
-			case <-stopChan:
+			case <-stopped:
 				return
 			default:
 				resultChan <- decodeResult
 				if decodeResult.err != nil {
+					stream.Close()
 					return
 				}
 			}
@@ -363,15 +370,15 @@ func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args 
 		return
 	}
 
-	for {
-		e := <-eventErrChan
-		if e.Error != nil {
-			ec <- err
-			continue
+	go func() {
+		for e := range eventErrChan {
+			if e.Error != nil {
+				ec <- err
+				return
+			}
+			go cb(&e.Event, ec, args...)
 		}
-
-		go cb(&e.Event, ec, args...)
-	}
+	}()
 }
 
 func (client *DockerClient) getEvents(cb Callback, ec chan error, args ...interface{}) {
