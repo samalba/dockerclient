@@ -61,7 +61,7 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 		}
 	}
 	httpClient := newHTTPClient(u, tlsConfig, timeout)
-	return &DockerClient{u, httpClient, tlsConfig, 0, 0, nil}, nil
+	return &DockerClient{u, httpClient, tlsConfig, 0, nil}, nil
 }
 
 func (client *DockerClient) doRequest(method string, path string, body []byte, headers map[string]string) ([]byte, error) {
