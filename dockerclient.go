@@ -288,11 +288,6 @@ func (client *DockerClient) ExecCreate(config *ExecConfig) (string, error) {
 	if err = json.Unmarshal(resp, &createExecResp); err != nil {
 		return "", err
 	}
-	uri = fmt.Sprintf("/exec/%s/start", createExecResp.Id)
-	resp, err = client.doRequest("POST", uri, data, nil)
-	if err != nil {
-		return "", err
-	}
 	return createExecResp.Id, nil
 }
 
