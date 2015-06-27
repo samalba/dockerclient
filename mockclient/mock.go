@@ -140,3 +140,8 @@ func (client *MockClient) ImportImage(source string, repository string, tag stri
 	args := client.Mock.Called(source, repository, tag, tar)
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
+
+func (client *MockClient) BuildImage(image BuildImage) (io.ReadCloser, error) {
+	args := client.Mock.Called(image)
+	return args.Get(0).(io.ReadCloser), args.Error(1)
+}
