@@ -40,5 +40,5 @@ type Client interface {
 	PauseContainer(name string) error
 	UnpauseContainer(name string) error
 	RenameContainer(oldName string, newName string) error
-	ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error)
+	ImportImage(source string, repository string, tag string, changes *[]string, tar io.Reader) (io.ReadCloser, error)
 }
