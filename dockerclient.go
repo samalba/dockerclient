@@ -235,21 +235,30 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 	resultChan := make(chan decodingResult)
 
 	go func() {
-		decoder := json.NewDecoder(stream)
-		stopped := make(chan struct{})
+		decodeChan := make(chan decodingResult)
+
 		go func() {
-			<-stopChan
-			stream.Close()
-			stopped <- struct{}{}
+			decoder := json.NewDecoder(stream)
+			for {
+				decodeResult := decode(decoder)
+				decodeChan <- decodeResult
+				if decodeResult.err != nil {
+					close(decodeChan)
+					return
+				}
+			}
 		}()
 
 		defer close(resultChan)
+
 		for {
-			decodeResult := decode(decoder)
 			select {
-			case <-stopped:
+			case <-stopChan:
+				stream.Close()
+				for range decodeChan {
+				}
 				return
-			default:
+			case decodeResult := <-decodeChan:
 				resultChan <- decodeResult
 				if decodeResult.err != nil {
 					stream.Close()
@@ -257,6 +266,7 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 				}
 			}
 		}
+
 	}()
 
 	return resultChan
