@@ -376,13 +376,17 @@ func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args 
 	go func() {
 		eventErrChan, err := client.MonitorEvents(nil, client.eventStopChan)
 		if err != nil {
-			ec <- err
+			if ec != nil {
+				ec <- err
+			}
 			return
 		}
 
 		for e := range eventErrChan {
 			if e.Error != nil {
-				ec <- err
+				if ec != nil {
+					ec <- err
+				}
 				return
 			}
 			cb(&e.Event, ec, args...)
