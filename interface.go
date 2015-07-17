@@ -21,6 +21,7 @@ type Client interface {
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
 	KillContainer(id, signal string) error
+	Wait(id string) <-chan WaitResult
 	// MonitorEvents takes options and an optional stop channel, and returns
 	// an EventOrError channel. If an error is ever sent, then no more
 	// events will be sent. If a stop channel is provided, events will stop
