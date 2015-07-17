@@ -23,7 +23,7 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
 }
 
 func testDockerClient(t *testing.T) *DockerClient {
-	client, err := NewDockerClient(testHTTPServer.URL, nil)
+	client, err := NewDockerClient(testHTTPServer.URL, nil, "v1.15")
 	if err != nil {
 		t.Fatal("Cannot init the docker client")
 	}
