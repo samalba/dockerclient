@@ -21,6 +21,10 @@ var (
 	testHTTPServer *httptest.Server
 )
 
+const (
+	APIVersion = "v1.15"
+)
+
 func init() {
 	r := mux.NewRouter()
 	baseURL := "/" + APIVersion

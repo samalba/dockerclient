@@ -26,7 +26,7 @@ func waitForInterrupt() {
 }
 
 func main() {
-	docker, err := dockerclient.NewDockerClient(os.Getenv("DOCKER_HOST"), nil)
+	docker, err := dockerclient.NewDockerClient(os.Getenv("DOCKER_HOST"), nil, "v1.15")
 	if err != nil {
 		log.Fatal(err)
 	}
