@@ -447,7 +447,11 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig) error {
 	uri := fmt.Sprintf("/%s/images/create?%s", APIVersion, v.Encode())
 	req, err := http.NewRequest("POST", client.URL.String()+uri, nil)
 	if auth != nil {
-		req.Header.Add("X-Registry-Auth", auth.encode())
+		encoded_auth, err := auth.encode()
+		if err != nil {
+			return err
+		}
+		req.Header.Add("X-Registry-Auth", encoded_auth)
 	}
 	resp, err := client.HTTPClient.Do(req)
 	if err != nil {
@@ -618,4 +622,59 @@ func (client *DockerClient) ImportImage(source string, repository string, tag st
 		in = tar
 	}
 	return client.doStreamRequest("POST", "/images/create?"+v.Encode(), in, nil)
+}
+
+func (client *DockerClient) BuildImage(image BuildImage) (io.ReadCloser, error) {
+	v := url.Values{}
+
+	if image.DockerfileName != "" {
+		v.Set("dockerfile", image.DockerfileName)
+	}
+	if image.RepoName != "" {
+		v.Set("t", image.RepoName)
+	}
+	if image.RemoteURL != "" {
+		v.Set("remote", image.RemoteURL)
+	}
+	if image.NoCache {
+		v.Set("nocache", "1")
+	}
+	if image.Pull {
+		v.Set("pull", "1")
+	}
+	if image.Remove {
+		v.Set("rm", "1")
+	} else {
+		v.Set("rm", "0")
+	}
+	if image.ForceRemove {
+		v.Set("forcerm", "1")
+	}
+	if image.SuppressOutput {
+		v.Set("q", "1")
+	}
+
+	v.Set("memory", strconv.FormatInt(image.Memory, 10))
+	v.Set("memswap", strconv.FormatInt(image.MemorySwap, 10))
+	v.Set("cpushares", strconv.FormatInt(image.CpuShares, 10))
+	v.Set("cpuperiod", strconv.FormatInt(image.CpuPeriod, 10))
+	v.Set("cpuquota", strconv.FormatInt(image.CpuQuota, 10))
+	v.Set("cpusetcpus", image.CpuSetCpus)
+	v.Set("cpusetmems", image.CpuSetMems)
+	v.Set("cgroupparent", image.CgroupParent)
+
+	headers := make(map[string]string)
+	if image.Config != nil {
+		encoded_config, err := image.Config.encode()
+		if err != nil {
+			return nil, err
+		}
+		headers["X-Registry-Config"] = encoded_config
+	}
+	if image.Context != nil {
+		headers["Content-Type"] = "application/tar"
+	}
+
+	uri := fmt.Sprintf("/%s/build?%s", APIVersion, v.Encode())
+	return client.doStreamRequest("POST", uri, image.Context, headers)
 }
