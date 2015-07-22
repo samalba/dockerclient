@@ -539,12 +539,47 @@ func (client *DockerClient) RemoveContainer(id string, force, volumes bool) erro
 	return err
 }
 
-func (client *DockerClient) ListImages(all bool) ([]*Image, error) {
-	argAll := 0
+func (client *DockerClient) ListImages(all bool, filter string, filters *ListFilter) ([]*Image, error) {
+	v := url.Values{}
+
+	argAll := "0"
 	if all {
-		argAll = 1
+		argAll = "1"
 	}
-	uri := fmt.Sprintf("/%s/images/json?all=%d", APIVersion, argAll)
+	v.Set("all", argAll)
+
+	if filter != "" {
+		v.Set("filter", filter)
+	}
+
+	filtersData := make(map[string][]string)
+
+	if filters.Dangling {
+		filtersData["dangling"] = []string{"true"}
+	}
+
+	if len(filters.Keys) > 0 {
+		for _, key := range filters.Keys {
+			filtersData["key"] = append(filtersData["key"], key)
+		}
+	}
+
+	if len(filters.Labels) > 0 {
+		for _, label := range filters.Labels {
+			filtersData["label"] = append(filtersData["label"], label)
+		}
+	}
+
+	if len(filtersData) > 0 {
+		mf, err := json.Marshal(filtersData)
+		if err != nil {
+			return nil, err
+		}
+		v.Set("filters", string(mf))
+	}
+
+	uri := fmt.Sprintf("/%s/images/json?%s", APIVersion, v.Encode())
+
 	data, err := client.doRequest("GET", uri, nil, nil)
 	if err != nil {
 		return nil, err
