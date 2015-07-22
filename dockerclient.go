@@ -539,12 +539,39 @@ func (client *DockerClient) RemoveContainer(id string, force, volumes bool) erro
 	return err
 }
 
-func (client *DockerClient) ListImages(all bool) ([]*Image, error) {
+func (client *DockerClient) ListImages(all bool, filter *ListFilter) ([]*Image, error) {
 	argAll := 0
 	if all {
 		argAll = 1
 	}
+
+	filters := make(map[string][]string)
+
+	if filter.Dangling {
+		filters["dangling"] = []string{"true"}
+	}
+
+	if len(filter.Keys) > 0 {
+		for _, key := range filter.Keys {
+			filters["key"] = append(filters["key"], key)
+		}
+	}
+
+	if len(filter.Labels) > 0 {
+		for _, label := range filter.Labels {
+			filters["label"] = append(filters["label"], label)
+		}
+	}
+
 	uri := fmt.Sprintf("/%s/images/json?all=%d", APIVersion, argAll)
+	if len(filters) > 0 {
+		mf, err := json.Marshal(filters)
+		if err != nil {
+			return nil, err
+		}
+		uri += fmt.Sprintf("&filters=%s", url.QueryEscape(string(mf)))
+	}
+
 	data, err := client.doRequest("GET", uri, nil, nil)
 	if err != nil {
 		return nil, err

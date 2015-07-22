@@ -35,7 +35,7 @@ type Client interface {
 	PullImage(name string, auth *AuthConfig) error
 	LoadImage(reader io.Reader) error
 	RemoveContainer(id string, force, volumes bool) error
-	ListImages(all bool) ([]*Image, error)
+	ListImages(all bool, filter *ListFilter) ([]*Image, error)
 	RemoveImage(name string) ([]*ImageDelete, error)
 	PauseContainer(name string) error
 	UnpauseContainer(name string) error

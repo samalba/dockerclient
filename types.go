@@ -437,3 +437,9 @@ type BuildImage struct {
 	CpuSetMems     string
 	CgroupParent   string
 }
+
+type ListFilter struct {
+	Dangling bool
+	Labels   []string
+	Keys     []string
+}
