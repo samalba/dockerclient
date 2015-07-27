@@ -9,79 +9,79 @@ import (
 )
 
 type ContainerConfig struct {
-	Hostname        string
-	Domainname      string
-	User            string
-	AttachStdin     bool
-	AttachStdout    bool
-	AttachStderr    bool
-	ExposedPorts    map[string]struct{}
-	Tty             bool
-	OpenStdin       bool
-	StdinOnce       bool
-	Env             []string
-	Cmd             []string
-	Image           string
-	Volumes         map[string]struct{}
-	VolumeDriver    string
-	WorkingDir      string
-	Entrypoint      []string
-	NetworkDisabled bool
-	MacAddress      string
-	OnBuild         []string
-	Labels          map[string]string
+	Hostname        string                    `json:"Hostname,omitempty" yaml:"Hostname,omitempty"`
+	Domainname      string                    `json:"Domainname,omitempty" yaml:"Domainname,omitempty"`
+	User            string                    `json:"User,omitempty" yaml:"User,omitempty"`
+	AttachStdin     bool                      `json:"AttachStdin,omitempty" yaml:"AttachStdin,omitempty"`
+	AttachStdout    bool                      `json:"AttachStdout,omitempty" yaml:"AttachStdout,omitempty"`
+	AttachStderr    bool                      `json:"AttachStderr,omitempty" yaml:"AttachStderr,omitempty"`
+	ExposedPorts    map[string]struct{}       `json:"ExposedPorts,omitempty" yaml:"ExposedPorts,omitempty"`
+	Tty             bool                      `json:"Tty,omitempty" yaml:"Tty,omitempty"`
+	OpenStdin       bool                      `json:"OpenStdin,omitempty" yaml:"OpenStdin,omitempty"`
+	StdinOnce       bool                      `json:"StdinOnce,omitempty" yaml:"StdinOnce,omitempty"`
+	Env             []string                  `json:"Env,omitempty" yaml:"Env,omitempty"`
+	Cmd             []string                  `json:"Cmd" yaml:"Cmd"`
+	Image           string                    `json:"Image,omitempty" yaml:"Image,omitempty"`
+	Volumes         map[string]struct{}       `json:"Volumes,omitempty" yaml:"Volumes,omitempty"`
+	VolumeDriver    string                    `json:"VolumeDriver,omitempty" yaml:"VolumeDriver,omitempty"`
+	WorkingDir      string                    `json:"WorkingDir,omitempty" yaml:"WorkingDir,omitempty"`
+	Entrypoint      []string                  `json:"Entrypoint" yaml:"Entrypoint"`
+	NetworkDisabled bool                      `json:"NetworkDisabled,omitempty" yaml:"NetworkDisabled,omitempty"`
+	MacAddress      string                    `json:"MacAddress,omitempty" yaml:"MacAddress,omitempty"`
+	OnBuild         []string                  `json:"OnBuild,omitempty" yaml:"OnBuild,omitempty"`
+	Labels          map[string]string         `json:"Labels,omitempty" yaml:"Labels,omitempty"`
 
 	// FIXME: The following fields have been removed since API v1.18
-	Memory     int64
-	MemorySwap int64
-	CpuShares  int64
-	Cpuset     string
-	PortSpecs  []string
+	Memory          int64                     `json:"Memory,omitempty" yaml:"Memory,omitempty"`
+	MemorySwap      int64                     `json:"MemorySwap,omitempty" yaml:"MemorySwap,omitempty"`
+	CpuShares       int64                     `json:"CpuShares,omitempty" yaml:"CpuShares,omitempty"`
+	Cpuset          string                    `json:"Cpuset,omitempty" yaml:"Cpuset,omitempty"`
+	PortSpecs       []string                  `json:"PortSpecs,omitempty" yaml:"PortSpecs,omitempty"`
 
 	// This is used only by the create command
 	HostConfig HostConfig
 }
 
 type HostConfig struct {
-	Binds           []string
-	ContainerIDFile string
-	LxcConf         []map[string]string
-	Memory          int64
-	MemorySwap      int64
-	CpuShares       int64
-	CpuPeriod       int64
-	CpusetCpus      string
-	CpusetMems      string
-	CpuQuota        int64
-	BlkioWeight     int64
-	OomKillDisable  bool
-	Privileged      bool
-	PortBindings    map[string][]PortBinding
-	Links           []string
-	PublishAllPorts bool
-	Dns             []string
-	DnsSearch       []string
-	ExtraHosts      []string
-	VolumesFrom     []string
-	Devices         []DeviceMapping
-	NetworkMode     string
-	IpcMode         string
-	PidMode         string
-	UTSMode         string
-	CapAdd          []string
-	CapDrop         []string
-	RestartPolicy   RestartPolicy
-	SecurityOpt     []string
-	ReadonlyRootfs  bool
-	Ulimits         []Ulimit
-	LogConfig       LogConfig
-	CgroupParent    string
+	Binds           []string                  `json:"Binds,omitempty" yaml:"Binds,omitempty"`
+	ContainerIDFile string                    `json:"ContainerIDFile,omitempty" yaml:"ContainerIDFile,omitempty"`
+	LxcConf         []map[string]string       `json:"LxcConf,omitempty" yaml:"LxcConf,omitempty"`
+	Memory          int64                     `json:"Memory,omitempty" yaml:"Memory,omitempty"`
+	MemorySwap      int64                     `json:"MemorySwap,omitempty" yaml:"MemorySwap,omitempty"`
+	CpuShares       int64                     `json:"CpuShares,omitempty" yaml:"CpuShares,omitempty"`
+	CpuPeriod       int64                     `json:"CpuPeriod,omitempty" yaml:"CpuPeriod,omitempty"`
+	CpusetCpus      string                    `json:"CpusetCpus,omitempty" yaml:"CpusetCpus,omitempty"`
+	CpusetMems      string                    `json:"CpusetMems,omitempty" yaml:"CpusetMems,omitempty"`
+	CpuQuota        int64                     `json:"CpuQuota,omitempty" yaml:"CpuQuota,omitempty"`
+	BlkioWeight     int64                     `json:"BlkioWeight,omitempty" yaml:"BlkioWeight,omitempty"`
+	OomKillDisable  bool                      `json:"OomKillDisable,omitempty" yaml:"OomKillDisable,omitempty"`
+	Privileged      bool                      `json:"Privileged,omitempty" yaml:"Privileged,omitempty"`
+	PortBindings    map[string][]PortBinding  `json:"PortBindings,omitempty" yaml:"PortBindings,omitempty"`
+	Links           []string                  `json:"Links,omitempty" yaml:"Links,omitempty"`
+	PublishAllPorts bool                      `json:"PublishAllPorts,omitempty" yaml:"PublishAllPorts,omitempty"`
+	Dns             []string                  `json:"Dns,omitempty" yaml:"Dns,omitempty"` // For Docker API v1.10 and above only
+	DnsSearch       []string                  `json:"DnsSearch,omitempty" yaml:"DnsSearch,omitempty"`
+	ExtraHosts      []string                  `json:"ExtraHosts,omitempty" yaml:"ExtraHosts,omitempty"`
+	VolumesFrom     []string                  `json:"VolumesFrom,omitempty" yaml:"VolumesFrom,omitempty"`
+	Devices         []DeviceMapping           `json:"Devices,omitempty" yaml:"Devices,omitempty"`
+	NetworkMode     string                    `json:"NetworkMode,omitempty" yaml:"NetworkMode,omitempty"`
+	IpcMode         string                    `json:"IpcMode,omitempty" yaml:"IpcMode,omitempty"`
+	PidMode         string                    `json:"PidMode,omitempty" yaml:"PidMode,omitempty"`
+	UTSMode         string                    `json:"UTSMode,omitempty" yaml:"UTSMode,omitempty"`
+	CapAdd          []string                  `json:"CapAdd,omitempty" yaml:"CapAdd,omitempty"`
+	CapDrop         []string                  `json:"CapDrop,omitempty" yaml:"CapDrop,omitempty"`
+	RestartPolicy   RestartPolicy             `json:"RestartPolicy,omitempty" yaml:"RestartPolicy,omitempty"`
+	SecurityOpt     []string                  `json:"SecurityOpt,omitempty" yaml:"SecurityOpt,omitempty"`
+	ReadonlyRootfs  bool                      `json:"ReadonlyRootfs,omitempty" yaml:"ReadonlyRootfs,omitempty"`
+	Ulimits         []Ulimit                  `json:"Ulimits,omitempty" yaml:"Ulimits,omitempty"`
+	LogConfig       LogConfig                 `json:"LogConfig,omitempty" yaml:"LogConfig,omitempty"`
+	CgroupParent    string                    `json:"CgroupParent,omitempty" yaml:"CgroupParent,omitempty"`
 }
 
 type DeviceMapping struct {
-	PathOnHost        string `json:"PathOnHost"`
-	PathInContainer   string `json:"PathInContainer"`
-	CgroupPermissions string `json:"CgroupPermissions"`
+	PathOnHost        string                  `json:"PathOnHost" yaml:"PathOnHost"`
+	PathInContainer   string                  `json:"PathInContainer" yaml:"PathInContainer"`
+	CgroupPermissions string                  `json:"CgroupPermissions" yaml:"CgroupPermissions"`
 }
 
 type ExecConfig struct {
@@ -115,13 +115,13 @@ type MonitorEventsOptions struct {
 }
 
 type RestartPolicy struct {
-	Name              string
-	MaximumRetryCount int64
+	Name              string                  `json:"Name,omitempty" yaml:"Name,omitempty"`
+	MaximumRetryCount int64                   `json:"MaximumRetryCount,omitempty" yaml:"MaximumRetryCount,omitempty"`
 }
 
 type PortBinding struct {
-	HostIp   string
-	HostPort string
+	HostIp   string                           `json:"HostIp,omitempty" yaml:"HostIp,omitempty"`
+	HostPort string                           `json:"HostPort,omitempty" yaml:"HostPort,omitempty"`
 }
 
 type State struct {
@@ -407,14 +407,14 @@ type Stats struct {
 }
 
 type Ulimit struct {
-	Name string `json:"name"`
-	Soft uint64 `json:"soft"`
-	Hard uint64 `json:"hard"`
+	Name string                                 `json:"name" yaml:"name"`
+	Soft uint64                                 `json:"soft" yaml:"soft"`
+	Hard uint64                                 `json:"hard" yaml:"hard"`
 }
 
 type LogConfig struct {
-	Type   string            `json:"type"`
-	Config map[string]string `json:"config"`
+	Type   string                               `json:"type" yaml:"type"`
+	Config map[string]string                    `json:"config" yaml:"config"`
 }
 
 type BuildImage struct {
