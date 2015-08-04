@@ -312,6 +312,26 @@ func (client *DockerClient) KillContainer(id, signal string) error {
 	return nil
 }
 
+func (client *DockerClient) Wait(id string) <-chan WaitResult {
+	ch := make(chan WaitResult)
+	uri := fmt.Sprintf("/%s/containers/%s/wait", APIVersion, id)
+
+	go func() {
+		data, err := client.doRequest("POST", uri, nil, nil)
+		if err != nil {
+			ch <- WaitResult{ExitCode: -1, Error: err}
+			return
+		}
+
+		var result struct {
+			StatusCode int `json:"StatusCode"`
+		}
+		err = json.Unmarshal(data, &result)
+		ch <- WaitResult{ExitCode: result.StatusCode, Error: err}
+	}()
+	return ch
+}
+
 func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions, stopChan <-chan struct{}) (<-chan EventOrError, error) {
 	v := url.Values{}
 	if options != nil {
