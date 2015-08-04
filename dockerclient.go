@@ -569,6 +569,20 @@ func (client *DockerClient) RemoveImage(name string) ([]*ImageDelete, error) {
 	return imageDelete, nil
 }
 
+func (client *DockerClient) WaitContainer(id string) (int, error) {
+	uri := fmt.Sprintf("/%s/containers/%s/wait", APIVersion, id)
+	data, err := client.doRequest("POST", uri, nil, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	status := map[string]int{}
+	if err := json.Unmarshal(data, &status); err != nil {
+		return 0, err
+	}
+	return status["StatusCode"], nil
+}
+
 func (client *DockerClient) PauseContainer(id string) error {
 	uri := fmt.Sprintf("/%s/containers/%s/pause", APIVersion, id)
 	_, err := client.doRequest("POST", uri, nil, nil)
