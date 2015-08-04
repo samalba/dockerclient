@@ -693,14 +693,21 @@ func (client *DockerClient) BuildImage(image *BuildImage) (io.ReadCloser, error)
 	return client.doStreamRequest("POST", uri, image.Context, headers)
 }
 
-func (client *DockerClient) Commit(cid string) (string, error) {
-	v := url.Values{}
-	v.Set("container", cid)
-	config, err := json.Marshal(&HostConfig{})
+func (client *DockerClient) Commit(id string, c *ContainerConfig, repo, tag, comment, author string) (string, error) {
+	config, err := json.Marshal(c)
 	if err != nil {
 		return "", err
 	}
-	data, err := client.doRequest("POST", "/v1.10/commit?"+v.Encode(), config)
+
+	v := url.Values{}
+	v.Set("container", id)
+	v.Set("repo", repo)
+	v.Set("tag", tag)
+	v.Set("comment", comment)
+	v.Set("author", author)
+
+	uri := fmt.Sprintf("/%s/commit?%s", APIVersion, v.Encode())
+	data, err := client.doRequest("POST", uri, config, nil)
 	if err != nil {
 		return "", err
 	}
