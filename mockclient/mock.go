@@ -155,3 +155,8 @@ func (client *MockClient) BuildImage(image *dockerclient.BuildImage) (io.ReadClo
 	args := client.Mock.Called(image)
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
+
+func (client *MockClient) Commit(id string, c *ContainerConfig, repo, tag, comment, author string) (string, error) {
+	args := client.Mock.Called(id, c, repo, tag, comment, author)
+	return args.Strings(0), args.Error(1)
+}
