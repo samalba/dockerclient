@@ -16,7 +16,9 @@ type Client interface {
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
 	ContainerChanges(id string) ([]*ContainerChanges, error)
-	Exec(config *ExecConfig) (string, error)
+	ExecCreate(config *ExecConfig) (string, error)
+	ExecStart(id string, config *ExecConfig) error
+	ExecResize(id string, width, height int) error
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
