@@ -738,3 +738,18 @@ func (client *DockerClient) BuildImage(image *BuildImage) (io.ReadCloser, error)
 	uri := fmt.Sprintf("/%s/build?%s", APIVersion, v.Encode())
 	return client.doStreamRequest("POST", uri, image.Context, headers)
 }
+
+func (client *DockerClient) History(id string) ([]ImageLayer, error) {
+	uri := fmt.Sprintf("/%s/images/%s/history", APIVersion, id)
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return []ImageLayer{}, err
+	}
+
+	layers := []ImageLayer{}
+	err = json.Unmarshal(data, &layers)
+	if err != nil {
+		return []ImageLayer{}, err
+	}
+	return layers, nil
+}
