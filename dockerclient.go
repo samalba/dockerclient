@@ -277,7 +277,7 @@ func (client *DockerClient) ExecCreate(config *ExecConfig) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	uri := fmt.Sprintf("/containers/%s/exec", config.Container)
+	uri := fmt.Sprintf("/%s/containers/%s/exec", APIVersion, config.Container)
 	resp, err := client.doRequest("POST", uri, data, nil)
 	if err != nil {
 		return "", err
@@ -297,7 +297,7 @@ func (client *DockerClient) ExecStart(id string, config *ExecConfig) error {
 		return err
 	}
 
-	uri := fmt.Sprintf("/exec/%s/start", id)
+	uri := fmt.Sprintf("/%s/exec/%s/start", APIVersion, id)
 	if _, err := client.doRequest("POST", uri, data, nil); err != nil {
 		return err
 	}
