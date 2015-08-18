@@ -17,21 +17,33 @@ func NewMockClient() *MockClient {
 
 func (client *MockClient) Info() (*dockerclient.Info, error) {
 	args := client.Mock.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*dockerclient.Info), args.Error(1)
 }
 
 func (client *MockClient) ListContainers(all bool, size bool, filters string) ([]dockerclient.Container, error) {
 	args := client.Mock.Called(all, size, filters)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]dockerclient.Container), args.Error(1)
 }
 
 func (client *MockClient) InspectContainer(id string) (*dockerclient.ContainerInfo, error) {
 	args := client.Mock.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*dockerclient.ContainerInfo), args.Error(1)
 }
 
 func (client *MockClient) InspectImage(id string) (*dockerclient.ImageInfo, error) {
 	args := client.Mock.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*dockerclient.ImageInfo), args.Error(1)
 }
 
@@ -42,11 +54,17 @@ func (client *MockClient) CreateContainer(config *dockerclient.ContainerConfig, 
 
 func (client *MockClient) ContainerLogs(id string, options *dockerclient.LogOptions) (io.ReadCloser, error) {
 	args := client.Mock.Called(id, options)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
 func (client *MockClient) ContainerChanges(id string) ([]*dockerclient.ContainerChanges, error) {
 	args := client.Mock.Called(id)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]*dockerclient.ContainerChanges), args.Error(1)
 }
 
@@ -77,6 +95,9 @@ func (client *MockClient) Wait(id string) <-chan dockerclient.WaitResult {
 
 func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptions, stopChan <-chan struct{}) (<-chan dockerclient.EventOrError, error) {
 	args := client.Mock.Called(options, stopChan)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(<-chan dockerclient.EventOrError), args.Error(1)
 }
 
@@ -103,6 +124,9 @@ func (client *MockClient) StopAllMonitorStats() {
 
 func (client *MockClient) Version() (*dockerclient.Version, error) {
 	args := client.Mock.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*dockerclient.Version), args.Error(1)
 }
 
@@ -123,11 +147,17 @@ func (client *MockClient) RemoveContainer(id string, force, volumes bool) error 
 
 func (client *MockClient) ListImages(all bool) ([]*dockerclient.Image, error) {
 	args := client.Mock.Called(all)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]*dockerclient.Image), args.Error(1)
 }
 
 func (client *MockClient) RemoveImage(name string) ([]*dockerclient.ImageDelete, error) {
 	args := client.Mock.Called(name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]*dockerclient.ImageDelete), args.Error(1)
 }
 
@@ -163,10 +193,16 @@ func (client *MockClient) RenameContainer(oldName string, newName string) error 
 
 func (client *MockClient) ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error) {
 	args := client.Mock.Called(source, repository, tag, tar)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
 func (client *MockClient) BuildImage(image *dockerclient.BuildImage) (io.ReadCloser, error) {
 	args := client.Mock.Called(image)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
