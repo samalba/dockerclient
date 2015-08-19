@@ -126,8 +126,8 @@ func (client *MockClient) ListImages(all bool) ([]*dockerclient.Image, error) {
 	return args.Get(0).([]*dockerclient.Image), args.Error(1)
 }
 
-func (client *MockClient) RemoveImage(name string) ([]*dockerclient.ImageDelete, error) {
-	args := client.Mock.Called(name)
+func (client *MockClient) RemoveImage(name string, force bool) ([]*dockerclient.ImageDelete, error) {
+	args := client.Mock.Called(name, force)
 	return args.Get(0).([]*dockerclient.ImageDelete), args.Error(1)
 }
 

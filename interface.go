@@ -39,7 +39,7 @@ type Client interface {
 	LoadImage(reader io.Reader) error
 	RemoveContainer(id string, force, volumes bool) error
 	ListImages(all bool) ([]*Image, error)
-	RemoveImage(name string) ([]*ImageDelete, error)
+	RemoveImage(name string, force bool) ([]*ImageDelete, error)
 	PauseContainer(name string) error
 	UnpauseContainer(name string) error
 	RenameContainer(oldName string, newName string) error
