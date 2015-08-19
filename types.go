@@ -442,3 +442,12 @@ type BuildImage struct {
 	CpuSetMems     string
 	CgroupParent   string
 }
+
+type ImageLayer struct {
+	Id        string
+	Created   int64
+	CreatedBy string
+	Comment   string
+	Size      int64
+	Tags      []string
+}
