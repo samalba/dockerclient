@@ -738,3 +738,242 @@ func (client *DockerClient) BuildImage(image *BuildImage) (io.ReadCloser, error)
 	uri := fmt.Sprintf("/%s/build?%s", APIVersion, v.Encode())
 	return client.doStreamRequest("POST", uri, image.Context, headers)
 }
+
+// Networks
+
+func (client *DockerClient) ListNetworks(name string, partialId string) ([]Network, error) {
+	uri := fmt.Sprintf("/%s/networks", APIVersion)
+
+	if name != "" {
+		uri += "&name=" + name
+	}
+
+	if partialId != "" {
+		uri += "&partial-id=" + partialId
+	}
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := []Network{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func (client *DockerClient) CreateNetwork(config *NetworkConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := fmt.Sprintf("/%s/networks", APIVersion)
+	data, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	var ret string
+	err = json.Unmarshal(data, &ret)
+	return ret, nil
+}
+
+func (client *DockerClient) GetNetwork(id string) (*Network, error) {
+	uri := fmt.Sprintf("/%s/networks/%s", APIVersion, id)
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := &Network{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func (client *DockerClient) ListEndpoints(id string) ([]Endpoint, error) {
+	uri := fmt.Sprintf("/%s/networks/%s/endpoints", APIVersion, id)
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := []Endpoint{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func (client *DockerClient) CreateEndpoint(networkId string, config *EndpointConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := fmt.Sprintf("/%s/networks/%s/endpoints", APIVersion, networkId)
+	data, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	var ret string
+	err = json.Unmarshal(data, &ret)
+	return ret, nil
+}
+
+func (client *DockerClient) GetEndpoint(networkId string, endpointId string) (*Endpoint, error) {
+	uri := fmt.Sprintf("/%s/networks/%s/endpoints/%s", APIVersion, networkId, endpointId)
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := &Endpoint{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func (client *DockerClient) JoinEndpoint(networkId string, endpointId string, config *JoinConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := fmt.Sprintf("/%s/networks/%s/endpoints/%s/containers", APIVersion, networkId, endpointId)
+	data, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	var ret string
+	err = json.Unmarshal(data, &ret)
+	return ret, nil
+}
+
+func (client *DockerClient) DetachEndpoint(networkId string, endpointId string, containerId string) error {
+	uri := fmt.Sprintf("/%s/networks/%s/endpoints/%s/containers/%s", APIVersion, networkId, endpointId, containerId)
+	_, err := client.doRequest("DELETE", uri, nil, nil)
+	return err
+}
+
+func (client *DockerClient) DeleteEndpoint(networkId string, endpointId string) error {
+	uri := fmt.Sprintf("/%s/networks/%s/endpoints/%s", APIVersion, networkId, endpointId)
+	_, err := client.doRequest("DELETE", uri, nil, nil)
+	return err
+}
+
+func (client *DockerClient) DeleteNetwork(networkId string) error {
+	uri := fmt.Sprintf("/%s/networks/%s", APIVersion, networkId)
+	_, err := client.doRequest("DELETE", uri, nil, nil)
+	return err
+}
+
+// Services
+
+func (client *DockerClient) ListServices(name string, partialId string, network string) ([]Service, error) {
+	uri := fmt.Sprintf("/%s/services", APIVersion)
+
+	if name != "" {
+		uri += "&name=" + name
+	}
+
+	if partialId != "" {
+		uri += "&partial-id=" + partialId
+	}
+
+	if network != "" {
+		uri += "&network=" + network
+	}
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := []Service{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
+func (client *DockerClient) PublishService(config *ServiceConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := fmt.Sprintf("/%s/services", APIVersion)
+	data, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	var ret string
+	err = json.Unmarshal(data, &ret)
+	return ret, nil
+}
+
+func (client *DockerClient) UnpublishService(serviceId string) error {
+	uri := fmt.Sprintf("/%s/services/%s", APIVersion, serviceId)
+	_, err := client.doRequest("DELETE", uri, nil, nil)
+	return err
+}
+
+func (client *DockerClient) GetService(id string) (*Service, error) {
+	uri := fmt.Sprintf("/%s/services/%s", APIVersion, id)
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := &Service{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
+func (client *DockerClient) AttachBackendToService(serviceId string, config *JoinConfig) (string, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	uri := fmt.Sprintf("/%s/services/%s/backend", APIVersion, serviceId)
+	data, err = client.doRequest("POST", uri, data, nil)
+	if err != nil {
+		return "", err
+	}
+	var ret string
+	err = json.Unmarshal(data, &ret)
+	return ret, nil
+}
+
+func (client *DockerClient) DetachBackendFromService(serviceId string, backendId string) error {
+	uri := fmt.Sprintf("/%s/services/%s/backend/%s", APIVersion, serviceId, backendId)
+	_, err := client.doRequest("DELETE", uri, nil, nil)
+	return err
+}
+
+func (client *DockerClient) ListBackends(serviceId string) ([]Backend, error) {
+	uri := fmt.Sprintf("/%s/services/%s/backend", APIVersion, serviceId)
+
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	ret := []Backend{}
+	err = json.Unmarshal(data, &ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}

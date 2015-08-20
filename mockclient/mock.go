@@ -170,3 +170,83 @@ func (client *MockClient) BuildImage(image *dockerclient.BuildImage) (io.ReadClo
 	args := client.Mock.Called(image)
 	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
+
+func (client *MockClient) ListNetworks(name string, partialId string) ([]dockerclient.Network, error) {
+	args := client.Mock.Called(name, partialId)
+	return args.Get(0).([]dockerclient.Network), args.Error(1)
+}
+
+func (client *MockClient) CreateNetwork(config *dockerclient.NetworkConfig) (string, error) {
+	args := client.Mock.Called(config)
+	return args.String(0), args.Error(1)
+}
+
+func (client *MockClient) GetNetwork(networkId string) (*dockerclient.Network, error) {
+	args := client.Mock.Called(networkId)
+	return args.Get(0).(*dockerclient.Network), args.Error(1)
+}
+
+func (client *MockClient) ListEndpoints(networkId string) ([]dockerclient.Endpoint, error) {
+	args := client.Mock.Called(networkId)
+	return args.Get(0).([]dockerclient.Endpoint), args.Error(1)
+}
+
+func (client *MockClient) CreateEndpoint(networkId string, config *dockerclient.EndpointConfig) (string, error) {
+	args := client.Mock.Called(networkId, config)
+	return args.String(0), args.Error(1)
+}
+
+func (client *MockClient) GetEndpoint(networkId string, endpointId string) (*dockerclient.Endpoint, error) {
+	args := client.Mock.Called(networkId, endpointId)
+	return args.Get(0).(*dockerclient.Endpoint), args.Error(1)
+}
+
+func (client *MockClient) JoinEndpoint(networkId string, endpointId string, config *dockerclient.JoinConfig) (string, error) {
+	args := client.Mock.Called(networkId, endpointId, config)
+	return args.String(0), args.Error(1)
+}
+
+func (client *MockClient) DetachEndpoint(networkId string, endpointId string, containerId string) error {
+	args := client.Mock.Called(networkId, endpointId, containerId)
+	return args.Error(0)
+}
+
+func (client *MockClient) DeleteEndpoint(networkId string, endpointId string) error {
+	args := client.Mock.Called(networkId, endpointId)
+	return args.Error(0)
+}
+
+func (client *MockClient) DeleteNetwork(networkId string) error {
+	args := client.Mock.Called(networkId)
+	return args.Error(0)
+}
+
+func (client *MockClient) ListServices(name string, partialId string, network string) ([]dockerclient.Service, error) {
+	args := client.Mock.Called(name, partialId, network)
+	return args.Get(0).([]dockerclient.Service), args.Error(1)
+}
+
+func (client *MockClient) PublishService(config *dockerclient.ServiceConfig) (string, error) {
+	args := client.Mock.Called(config)
+	return args.String(0), args.Error(1)
+}
+
+func (client *MockClient) UnpublishService(serviceId string) error {
+	args := client.Mock.Called(serviceId)
+	return args.Error(0)
+}
+
+func (client *MockClient) GetService(serviceId string) (*dockerclient.Service, error) {
+	args := client.Mock.Called(serviceId)
+	return args.Get(0).(*dockerclient.Service), args.Error(1)
+}
+
+func (client *MockClient) AttachBackendToService(serviceId string, config *dockerclient.JoinConfig) (string, error) {
+	args := client.Mock.Called(serviceId, config)
+	return args.String(0), args.Error(1)
+}
+
+func (client *MockClient) DetachBackendFromService(serviceId string, backendId string) error {
+	args := client.Mock.Called(serviceId, backendId)
+	return args.Error(0)
+}

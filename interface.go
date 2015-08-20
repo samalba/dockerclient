@@ -45,4 +45,25 @@ type Client interface {
 	RenameContainer(oldName string, newName string) error
 	ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error)
 	BuildImage(image *BuildImage) (io.ReadCloser, error)
+
+	// Networks
+	ListNetworks(name string, partialId string) ([]Network, error)
+	CreateNetwork(config *NetworkConfig) (string, error)
+	GetNetwork(networkId string) (*Network, error)
+	ListEndpoints(networkId string) ([]Endpoint, error)
+	CreateEndpoint(networkId string, config *EndpointConfig) (string, error)
+	GetEndpoint(networkId string, endpointId string) (*Endpoint, error)
+	JoinEndpoint(networkId string, endpointId string, config *JoinConfig) (string, error)
+	DetachEndpoint(networkId string, endpointId string, containerId string) error
+	DeleteEndpoint(networkId string, endpointId string) error
+	DeleteNetwork(networkId string) error
+
+	// Services
+	ListServices(name string, partialId string, network string) ([]Service, error)
+	PublishService(config *ServiceConfig) (string, error)
+	UnpublishService(serviceId string) error
+	GetService(serviceId string) (*Service, error)
+	AttachBackendToService(serviceId string, config *JoinConfig) (string, error)
+	DetachBackendFromService(serviceId string, backendId string) error
+	ListBackends(serviceId string) ([]Backend, error)
 }

@@ -3,6 +3,7 @@ package dockerclient
 import (
 	"fmt"
 	"io"
+	"net"
 	"time"
 
 	"github.com/docker/docker/pkg/units"
@@ -119,11 +120,6 @@ type RestartPolicy struct {
 	MaximumRetryCount int64
 }
 
-type PortBinding struct {
-	HostIp   string
-	HostPort string
-}
-
 type State struct {
 	Running    bool
 	Paused     bool
@@ -210,11 +206,24 @@ type ContainerInfo struct {
 	State           *State
 	Image           string
 	NetworkSettings struct {
-		IPAddress   string `json:"IpAddress"`
-		IPPrefixLen int    `json:"IpPrefixLen"`
-		Gateway     string
-		Bridge      string
-		Ports       map[string][]PortBinding
+		Bridge                 string
+		EndpointID             string
+		Gateway                string
+		GlobalIPv6Address      string
+		GlobalIPv6PrefixLen    int
+		HairpinMode            bool
+		IPAddress              string `json:"IpAddress"`
+		IPPrefixLen            int    `json:"IpPrefixLen"`
+		IPv6Gateway            string
+		LinkLocalIPv6Address   string
+		LinkLocalIPv6PrefixLen int
+		MacAddress             string
+		NetworkId              string
+		PortMapping            []PortBinding // TODO ???
+		Ports                  map[string][]PortBinding
+		SandboxKey             string
+		SecondaryIPAddresses   []string
+		SecondaryIPv6Addresses []string
 	}
 	SysInitPath    string
 	ResolvConfPath string
@@ -441,4 +450,102 @@ type BuildImage struct {
 	CpuSetCpus     string
 	CpuSetMems     string
 	CgroupParent   string
+}
+
+// libnetwork
+
+type Network struct {
+	Id        string     `json:"id"`
+	Name      string     `json:"name"`
+	Type      string     `json:"type"`
+	Endpoints []Endpoint `json:"endpoints"` // TODO rename into services? (see client/types.go in libnetwork)
+}
+
+type Endpoint struct {
+	Id      string `json:"id"`
+	Name    string `name:"name"`
+	Network string `network:"network"`
+}
+
+type JoinConfig struct {
+	ContainerID       string                `json:"container_id"`
+	HostName          string                `json:"host_name"`
+	DomainName        string                `json:"domain_name"`
+	HostsPath         string                `json:"hosts_path"`
+	ResolvConfPath    string                `json:"resolv_conf_path"`
+	DNS               []string              `json:"dns"`
+	ExtraHosts        []ServiceExtraHost    `json:"extra_hosts"`
+	ParentUpdates     []ServiceParentUpdate `json:"parent_updates"`
+	UseDefaultSandbox bool                  `json:"use_default_sandbox"`
+}
+
+// ServiceExtraHost represents the extra host object
+type ServiceExtraHost struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+
+// EndpointParentUpdate is the object carrying the information about the
+// endpoint parent that needs to be updated
+type ServiceParentUpdate struct {
+	EndpointID string `json:"service_id"`
+	Name       string `json:"name"`
+	Address    string `json:"address"`
+}
+
+type Service struct {
+	Id      string `json:"id"`
+	Name    string `name:"name"`
+	Network string `network:"network"`
+}
+
+type Backend struct {
+	Id string `json:"id"`
+}
+
+type ServiceConfig struct {
+	Name         string          `json:"name"`
+	NetworkName  string          `json:"network_name"`
+	ExposedPorts []TransportPort `json:"exposed_ports"`
+	PortMapping  []PortBinding   `json:"port_mapping"`
+}
+
+type NetworkConfig struct {
+	Name        string                 `json:"name"`
+	NetworkType string                 `json:"network_type"`
+	Options     map[string]interface{} `json:"options"`
+}
+
+type RespNetworksCreate struct {
+	Id string `json:"id"`
+}
+
+type EndpointConfig struct {
+	Name         string          `json:"name"`
+	ExposedPorts []TransportPort `json:"exposed_ports"`
+	PortMapping  []PortBinding   `json:"port_mapping"`
+}
+
+type TransportPort struct {
+	Proto Protocol
+	Port  uint16
+}
+
+const (
+	// ICMP is for the ICMP ip protocol
+	ICMP = 1
+	// TCP is for the TCP ip protocol
+	TCP = 6
+	// UDP is for the UDP ip protocol
+	UDP = 17
+)
+
+type Protocol uint8
+
+type PortBinding struct {
+	Proto    Protocol `json:"proto"`
+	IP       net.IP
+	Port     uint16 `json:"port"`
+	HostIP   net.IP
+	HostPort uint16
 }
