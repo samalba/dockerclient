@@ -305,23 +305,6 @@ func (client *DockerClient) ExecStart(id string, config *ExecConfig) error {
 	return nil
 }
 
-func (client *DockerClient) ExecResize(id string, width, height int) error {
-	v := url.Values{}
-
-	w := strconv.Itoa(width)
-	h := strconv.Itoa(height)
-
-	v.Set("w", w)
-	v.Set("h", h)
-
-	uri := fmt.Sprintf("/%s/exec/%s/resize?%s", APIVersion, id, v.Encode())
-	if _, err := client.doRequest("POST", client.URL.String()+uri, nil, nil); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (client *DockerClient) StartContainer(id string, config *HostConfig) error {
 	data, err := json.Marshal(config)
 	if err != nil {
@@ -359,6 +342,24 @@ func (client *DockerClient) KillContainer(id, signal string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (client *DockerClient) ResizeContainer(id string, isExec bool, width, height int) error {
+	v := url.Values{}
+	v.Set("w", strconv.Itoa(width))
+	v.Set("h", strconv.Itoa(height))
+
+	var uri string
+	if isExec {
+		uri = fmt.Sprintf("/%s/exec/%s/resize?%s", APIVersion, id, v.Encode())
+	} else {
+		uri = fmt.Sprintf("/%s/containers/%s/resize?%s", APIVersion, id, v.Encode())
+	}
+	if _, err := client.doRequest("POST", uri, nil, nil); err != nil {
+		return err
+	}
+
 	return nil
 }
 

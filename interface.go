@@ -18,11 +18,11 @@ type Client interface {
 	ContainerChanges(id string) ([]*ContainerChanges, error)
 	ExecCreate(config *ExecConfig) (string, error)
 	ExecStart(id string, config *ExecConfig) error
-	ExecResize(id string, width, height int) error
 	StartContainer(id string, config *HostConfig) error
 	StopContainer(id string, timeout int) error
 	RestartContainer(id string, timeout int) error
 	KillContainer(id, signal string) error
+	ResizeContainer(id string, isExec bool, width, height int) error
 	Wait(id string) <-chan WaitResult
 	// MonitorEvents takes options and an optional stop channel, and returns
 	// an EventOrError channel. If an error is ever sent, then no more
