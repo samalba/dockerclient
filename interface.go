@@ -45,4 +45,5 @@ type Client interface {
 	RenameContainer(oldName string, newName string) error
 	ImportImage(source string, repository string, tag string, tar io.Reader) (io.ReadCloser, error)
 	BuildImage(image *BuildImage) (io.ReadCloser, error)
+	Commit(id string, c *ContainerConfig, repo, tag, comment, author string) (string, error)
 }
