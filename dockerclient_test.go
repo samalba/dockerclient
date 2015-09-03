@@ -238,3 +238,199 @@ func TestDockerClientInterface(t *testing.T) {
 		t.Fatalf("DockerClient does not implement the Client interface")
 	}
 }
+
+func TestLibnetwork(t *testing.T) {
+	docker, _ := NewDockerClient("unix:///var/run/docker.sock", nil)
+
+	// Create Network
+	netConfig := &NetworkConfig{
+		Name:        "netfoo",
+		NetworkType: "overlay",
+	}
+	netId, err := docker.CreateNetwork(netConfig)
+	if err != nil {
+		t.Fatalf("cannot create network 'netfoo': %v", err)
+	}
+	if netId == "" {
+		t.Fatalf("CreateEndpoint should return a non empty value for the network Id")
+	}
+
+	// List Networks
+	networks, err := docker.ListNetworks("", "")
+	if err != nil {
+		t.Fatalf("cannot list network: %v", err)
+	}
+	if networks == nil {
+		t.Fatalf("ListNetworks should return a non nil network list")
+	}
+	for _, n := range networks {
+		if n.Id == "" {
+			t.Fatalf("invalid entry for network")
+		}
+	}
+
+	// Get Network
+	network, err := docker.GetNetwork(netId)
+	if err != nil {
+		t.Fatalf("cannot get network 'netfoo': %v", err)
+	}
+	if network == nil {
+		t.Fatalf("GetNetwork should return a non nil network object")
+	}
+
+	// Create Endpoint
+	endpointConfig := &EndpointConfig{
+		Name: "myendpoint",
+		ExposedPorts: []TransportPort{
+			TransportPort{
+				Proto: 6,
+				Port:  7890,
+			},
+		},
+	}
+	eId, err := docker.CreateEndpoint(netId, endpointConfig)
+	if err != nil {
+		t.Fatalf("cannot create endpoint myendpoint for network 'netfoo': %v", err)
+	}
+	if eId == "" {
+		t.Fatalf("CreateEndpoint should return a non empty value for the endpoint Id")
+	}
+
+	// List Endpoints
+	endpoints, err := docker.ListEndpoints(netId)
+	if err != nil {
+		t.Fatalf("cannot list endpoints for 'netfoo': %s", err)
+	}
+	if len(endpoints) == 0 {
+		t.Fatalf("endpoint list is empty for ListEndpoints, should contain at least one entry")
+	}
+
+	// Get Network with endpoint
+	network, err = docker.GetNetwork(netId)
+	if err != nil {
+		t.Fatalf("cannot get network 'netfoo': %v", err)
+	}
+	if network == nil {
+		t.Fatalf("network is nil")
+	}
+	if len(network.Endpoints) == 0 {
+		t.Fatalf("endpoint list is empty for GetNetwork, should contain at least one entry")
+	}
+
+	// Get Endpoint
+	endpoint, err := docker.GetEndpoint(netId, eId)
+	if err != nil {
+		t.Fatalf("cannot get endpoint myendpoint: %s", err)
+	}
+	if endpoint == nil {
+		t.Fatalf("endpoint is nil")
+	}
+
+	// Create a container
+	containerConfig := &ContainerConfig{
+		Image:       "ubuntu:14.04",
+		Cmd:         []string{"bash"},
+		AttachStdin: true,
+		Tty:         true,
+	}
+	containerId, err := docker.CreateContainer(containerConfig, "bar")
+	if err != nil {
+		t.Fatalf("CreateContainer should successfully create a container: %v", err)
+	}
+	if containerId == "" {
+		t.Fatalf("container ID should not be empty")
+	}
+
+	// Attach endpoint to container
+	joinConfig := &JoinConfig{
+		ContainerID:       containerId,
+		UseDefaultSandbox: true,
+	}
+	joinStr, err := docker.JoinEndpoint(netId, eId, joinConfig)
+	if err != nil {
+		t.Fatalf("JoinEndpoint should successfully join the container to the endpoint: %v", err)
+	}
+	if joinStr == "" {
+		t.Fatalf("result of JoinEndpoint should not be empty")
+	}
+
+	// Start the container
+	hostConfig := &HostConfig{}
+	err = docker.StartContainer(containerId, hostConfig)
+	if err != nil {
+		t.Fatal("The container should start successfully", err)
+	}
+
+	// Publish Service
+	serviceConfig := &ServiceConfig{
+		Name:        "myservice",
+		NetworkName: network.Name,
+	}
+	sId, err := docker.PublishService(serviceConfig)
+	if err != nil {
+		t.Fatalf("cannot publish service myservice: %s", err)
+	}
+	if sId == "" {
+		t.Fatalf("service Id should not be empty")
+	}
+
+	// Attach Backend to Service
+	joinConfig = &JoinConfig{
+		ContainerID:       containerId,
+		UseDefaultSandbox: true,
+	}
+	attachStr, err := docker.AttachBackendToService(sId, joinConfig)
+	if err != nil {
+		t.Fatalf("cannot attach backend to service 'myservice': %v", err)
+	}
+	if attachStr == "" {
+		t.Fatalf("result of AttachBackendToService should not be empty")
+	}
+
+	// List Service Backends
+	backends, err := docker.ListBackends(sId)
+	if err != nil {
+		t.Fatalf("cannot list backends of service 'myservice': %v", err)
+	}
+	for _, b := range backends {
+		if b.Id == "" {
+			t.Fatalf("incorrect entry for backends list in return of ListBackends")
+		}
+	}
+
+	// Detach Backend from Service
+	err = docker.DetachBackendFromService(sId, containerId)
+	if err != nil {
+		t.Fatalf("cannnot detach backend from service 'myservice': %v", err)
+	}
+
+	// Unpublish Service
+	err = docker.UnpublishService(sId)
+	if err != nil {
+		t.Fatalf("cannot unpublish service 'myservice': %v", err)
+	}
+
+	// Detach endpoint from the container
+	err = docker.DetachEndpoint(netId, eId, containerId)
+	if err != nil {
+		t.Fatalf("cannot detach endpoint 'myendpoint' from network 'netfoo': %v", err)
+	}
+
+	// Delete Endpoint
+	err = docker.DeleteEndpoint(netId, eId)
+	if err != nil {
+		t.Fatalf("cannot delete endpoint 'myendpoint': %v", err)
+	}
+
+	// Delete Network
+	err = docker.DeleteNetwork(netId)
+	if err != nil {
+		t.Fatalf("cannot delete network 'netfoo': %v", err)
+	}
+
+	// Delete Container
+	err = docker.RemoveContainer(containerId, true, false)
+	if err != nil {
+		t.Fatalf("failed to remove container: %v", err)
+	}
+}
