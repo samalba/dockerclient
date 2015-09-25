@@ -10,7 +10,8 @@ import (
 
 func newHTTPClient(u *url.URL, tlsConfig *tls.Config, timeout time.Duration) *http.Client {
 	httpTransport := &http.Transport{
-		TLSClientConfig: tlsConfig,
+		TLSClientConfig:   tlsConfig,
+		DisableKeepAlives: true,
 	}
 
 	switch u.Scheme {
