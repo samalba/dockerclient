@@ -12,6 +12,7 @@ type Client interface {
 	Info() (*Info, error)
 	ListContainers(all, size bool, filters string) ([]Container, error)
 	InspectContainer(id string) (*ContainerInfo, error)
+	BuildImage(image BuildImage, config *ConfigFile) error
 	InspectImage(id string) (*ImageInfo, error)
 	CreateContainer(config *ContainerConfig, name string) (string, error)
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
@@ -36,6 +37,7 @@ type Client interface {
 	TagImage(nameOrID string, repo string, tag string, force bool) error
 	Version() (*Version, error)
 	PullImage(name string, auth *AuthConfig) error
+	PushImage(name string, tag string, auth *AuthConfig) error
 	LoadImage(reader io.Reader) error
 	RemoveContainer(id string, force, volumes bool) error
 	ListImages(all bool) ([]*Image, error)

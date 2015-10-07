@@ -280,6 +280,17 @@ type Image struct {
 	VirtualSize int64
 }
 
+type BuildImage struct {
+	Name           string
+	Remote         string
+	DockerfilePath string
+	Tarfile        io.Reader
+	NoCache        bool
+	Pull           bool
+	Remove         bool
+	ForceRemove    bool
+}
+
 // Info is the struct returned by /info
 // The API is currently in flux, so Debug, MemoryLimit, SwapLimit, and
 // IPv4Forwarding are interfaces because in docker 1.6.1 they are 0 or 1 but in
