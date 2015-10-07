@@ -94,7 +94,7 @@ func (client *NopClient) Version() (*dockerclient.Version, error) {
 	return nil, ErrNoEngine
 }
 
-func (client *NopClient) PullImage(name string, auth *dockerclient.AuthConfig) error {
+func (client *NopClient) PullImage(name string, auth *dockerclient.AuthConfig, out ...io.Writer) error {
 	return ErrNoEngine
 }
 
