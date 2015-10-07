@@ -106,8 +106,8 @@ func (client *MockClient) Version() (*dockerclient.Version, error) {
 	return args.Get(0).(*dockerclient.Version), args.Error(1)
 }
 
-func (client *MockClient) PullImage(name string, auth *dockerclient.AuthConfig, cliOut io.Writer) error {
-	args := client.Mock.Called(name, auth, cliOut)
+func (client *MockClient) PullImage(name string, auth *dockerclient.AuthConfig, out ...io.Writer) error {
+	args := client.Mock.Called(name, auth, out...)
 	return args.Error(0)
 }
 

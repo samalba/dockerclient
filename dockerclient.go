@@ -528,7 +528,7 @@ func (client *DockerClient) Version() (*Version, error) {
 	return version, nil
 }
 
-func (client *DockerClient) PullImage(name string, auth *AuthConfig, cliOut io.Writer) (err error) {
+func (client *DockerClient) PullImage(name string, auth *AuthConfig, out ...io.Writer) (err error) {
 	v := url.Values{}
 	v.Set("fromImage", name)
 	uri := fmt.Sprintf("/%s/images/create?%s", APIVersion, v.Encode())
@@ -559,6 +559,10 @@ func (client *DockerClient) PullImage(name string, auth *AuthConfig, cliOut io.W
 	}
 
 	errorReader := io.Reader(resp.Body)
+	var cliOut io.Writer
+	if len(out) > 0 {
+		cliOut = out[0]
+	}
 	if cliOut != nil {
 		pipeReader, pipeWriter := io.Pipe()
 		streamErrChan := make(chan error)

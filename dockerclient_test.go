@@ -81,17 +81,17 @@ func TestWait(t *testing.T) {
 
 func TestPullImage(t *testing.T) {
 	client := testDockerClient(t)
-	err := client.PullImage("busybox", nil, nil)
+	err := client.PullImage("busybox", nil) // old clients do not break on the API change
 	if err != nil {
 		t.Fatal("unable to pull busybox: %v", err)
 	}
 
-	err = client.PullImage("haproxy", nil, nil)
+	err = client.PullImage("haproxy", nil, os.Stderr) // io.Writer is optional
 	if err != nil {
 		t.Fatal("unable to pull haproxy: %v", err)
 	}
 
-	err = client.PullImage("wrongimg", nil, nil)
+	err = client.PullImage("wrongimg", nil)
 	if err == nil {
 		t.Fatal("should return error when it fails to pull wrongimg")
 	}
