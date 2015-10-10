@@ -102,6 +102,7 @@ func (client *DockerClient) doStreamRequest(method string, path string, in io.Re
 		return nil, err
 	}
 	if resp.StatusCode == 404 {
+		defer resp.Body.Close()
 		return nil, ErrNotFound
 	}
 	if resp.StatusCode >= 400 {
