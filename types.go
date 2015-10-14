@@ -5,7 +5,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/docker/docker/daemon/network"
 	"github.com/docker/docker/pkg/units"
 )
 
@@ -496,10 +495,10 @@ type EndpointResource struct {
 
 // NetworkCreate is the expected body of the "create network" http request message
 type NetworkCreate struct {
-	Name           string       `json:"name"`
-	CheckDuplicate bool         `json:"check_duplicate"`
-	Driver         string       `json:"driver"`
-	IPAM           network.IPAM `json:"ipam"`
+	Name           string `json:"name"`
+	CheckDuplicate bool   `json:"check_duplicate"`
+	Driver         string `json:"driver"`
+	IPAM           IPAM   `json:"ipam"`
 }
 
 // NetworkCreateResponse is the response message sent by the server for network create call
