@@ -24,6 +24,7 @@ type ContainerConfig struct {
 	Image           string
 	Volumes         map[string]struct{}
 	VolumeDriver    string
+	PublishService  string
 	WorkingDir      string
 	Entrypoint      []string
 	NetworkDisabled bool
