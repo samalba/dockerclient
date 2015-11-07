@@ -46,7 +46,7 @@ func (client *NopClient) ContainerChanges(id string) ([]*dockerclient.ContainerC
 	return nil, ErrNoEngine
 }
 
-func (client *DockerClient) AttachContainer(id string, options *AttachOptions) (io.ReadCloser, error) {
+func (client *DockerClient) AttachContainer(id string, options *dockerclient.AttachOptions) (io.ReadCloser, error) {
 	return nil, ErrNoEngine
 }
 
