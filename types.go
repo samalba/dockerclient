@@ -112,6 +112,14 @@ type LogOptions struct {
 	Tail       int64
 }
 
+type AttachOptions struct {
+	Logs   bool
+	Stream bool
+	Stdin  bool
+	Stdout bool
+	Stderr bool
+}
+
 type MonitorEventsFilters struct {
 	Event     string `json:",omitempty"`
 	Image     string `json:",omitempty"`
