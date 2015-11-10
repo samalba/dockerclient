@@ -518,6 +518,7 @@ type NetworkCreate struct {
 	CheckDuplicate bool
 	Driver         string
 	IPAM           IPAM
+	Options        map[string]string
 }
 
 // NetworkCreateResponse is the response message sent by the server for network create call
