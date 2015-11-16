@@ -328,7 +328,7 @@ func (client *DockerClient) ExecResize(id string, width, height int) error {
 	v.Set("h", h)
 
 	uri := fmt.Sprintf("/%s/exec/%s/resize?%s", APIVersion, id, v.Encode())
-	if _, err := client.doRequest("POST", client.URL.String()+uri, nil, nil); err != nil {
+	if _, err := client.doRequest("POST", uri, nil, nil); err != nil {
 		return err
 	}
 
