@@ -233,6 +233,7 @@ type ContainerInfo struct {
 		Gateway     string
 		Bridge      string
 		Ports       map[string][]PortBinding
+		Networks    map[string]*EndpointSettings
 	}
 	SysInitPath    string
 	ResolvConfPath string
@@ -536,4 +537,16 @@ type NetworkConnect struct {
 // NetworkDisconnect represents the data to be used to disconnect a container from the network
 type NetworkDisconnect struct {
 	Container string
+}
+
+// EndpointSettings stores the network endpoint details
+type EndpointSettings struct {
+	EndpointID          string
+	Gateway             string
+	IPAddress           string
+	IPPrefixLen         int
+	IPv6Gateway         string
+	GlobalIPv6Address   string
+	GlobalIPv6PrefixLen int
+	MacAddress          string
 }
