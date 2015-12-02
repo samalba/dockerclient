@@ -60,7 +60,7 @@ type HostConfig struct {
 	CpuQuota          int64
 	BlkioWeight       int64
 	OomKillDisable    bool
-	MemorySwappiness  int64
+	MemorySwappiness  *int64
 	Privileged        bool
 	PortBindings      map[string][]PortBinding
 	Links             []string
