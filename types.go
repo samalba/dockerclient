@@ -217,6 +217,14 @@ type ImageInfo struct {
 	VirtualSize     int64
 }
 
+type ImageSearch struct {
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+	IsOfficial  bool   `json:"is_official,omitempty" yaml:"is_official,omitempty"`
+	IsAutomated bool   `json:"is_automated,omitempty" yaml:"is_automated,omitempty"`
+	Name        string `json:"name,omitempty" yaml:"name,omitempty"`
+	StarCount   int    `json:"star_count,omitempty" yaml:"star_count,omitempty"`
+}
+
 type ContainerInfo struct {
 	Id              string
 	Created         string
