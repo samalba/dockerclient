@@ -648,17 +648,9 @@ func (client *DockerClient) InspectImage(id string) (*ImageInfo, error) {
 }
 
 func (client *DockerClient) LoadImage(reader io.Reader) error {
-	data, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-
 	uri := fmt.Sprintf("/%s/images/load", APIVersion)
-	_, err = client.doRequest("POST", uri, data, nil)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := client.doStreamRequest("POST", uri, reader, nil)
+	return err
 }
 
 func (client *DockerClient) RemoveContainer(id string, force, volumes bool) error {
