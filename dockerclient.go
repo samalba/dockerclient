@@ -184,7 +184,7 @@ func (client *DockerClient) InspectContainer(id string) (*ContainerInfo, error) 
 	return info, nil
 }
 
-func (client *DockerClient) CreateContainer(config *ContainerConfig, name string) (string, error) {
+func (client *DockerClient) CreateContainer(config *ContainerConfig, name string, auth *AuthConfig) (string, error) {
 	data, err := json.Marshal(config)
 	if err != nil {
 		return "", err
@@ -195,14 +195,22 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig, name string
 		v.Set("name", name)
 		uri = fmt.Sprintf("%s?%s", uri, v.Encode())
 	}
-	data, err = client.doRequest("POST", uri, data, nil)
+	headers := map[string]string{}
+	if auth != nil {
+		encoded_auth, err := auth.encode()
+		if err != nil {
+			return "", err
+		}
+		headers["X-Registry-Auth"] = encoded_auth
+	}
+	data, err = client.doRequest("POST", uri, data, headers)
 	if err != nil {
 		return "", err
 	}
 	result := &RespContainersCreate{}
 	err = json.Unmarshal(data, result)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf(string(data))
 	}
 	return result.Id, nil
 }
