@@ -21,8 +21,9 @@ const (
 )
 
 var (
-	ErrImageNotFound = errors.New("Image not found")
-	ErrNotFound      = errors.New("Not found")
+	ErrImageNotFound     = errors.New("Image not found")
+	ErrNotFound          = errors.New("Not found")
+	ErrConnectionRefused = errors.New("Cannot connect to the docker engine endpoint")
 
 	defaultTimeout = 30 * time.Second
 )
@@ -99,6 +100,9 @@ func (client *DockerClient) doStreamRequest(method string, path string, in io.Re
 	if err != nil {
 		if !strings.Contains(err.Error(), "connection refused") && client.TLSConfig == nil {
 			return nil, fmt.Errorf("%v. Are you trying to connect to a TLS-enabled daemon without TLS?", err)
+		}
+		if strings.Contains(err.Error(), "connection refused") {
+			return nil, ErrConnectionRefused
 		}
 		return nil, err
 	}
