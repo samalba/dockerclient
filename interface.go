@@ -14,6 +14,7 @@ type Client interface {
 	InspectContainer(id string) (*ContainerInfo, error)
 	InspectImage(id string) (*ImageInfo, error)
 	CreateContainer(config *ContainerConfig, name string, authConfig *AuthConfig) (string, error)
+	UpdateContainer(ID string, config *HostConfig) error
 	ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error)
 	ContainerChanges(id string) ([]*ContainerChanges, error)
 	ExecCreate(config *ExecConfig) (string, error)

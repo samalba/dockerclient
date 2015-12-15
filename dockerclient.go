@@ -219,6 +219,17 @@ func (client *DockerClient) CreateContainer(config *ContainerConfig, name string
 	return result.Id, nil
 }
 
+func (client *DockerClient) UpdateContainer(containerID string, config *HostConfig) error {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+	uri := fmt.Sprintf("/%s/containers/%s/update", APIVersion, containerID)
+	_, err = client.doRequest("POST", uri, data, nil)
+
+	return err
+}
+
 func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.ReadCloser, error) {
 	v := url.Values{}
 	v.Add("follow", strconv.FormatBool(options.Follow))
