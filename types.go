@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/docker/docker/pkg/units"
+	"github.com/docker/go-units"
 )
 
 type ContainerConfig struct {
