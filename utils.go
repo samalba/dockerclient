@@ -22,7 +22,13 @@ func newHTTPClient(u *url.URL, tlsConfig *tls.Config, timeout time.Duration) *ht
 				// if packets are not acknowledged after 20 seconds. This is a
 				// relatively new TCP option to improve dead peer detection.
 				// Do not fail newHTTPClient if OS doesn's support it.
-				SetTCPUserTimeout(tcpConn, 20*time.Second)
+
+				// user timeout shouldn't be too aggressive
+				userTimeout := timeout
+				if userTimeout < 20*time.Second {
+					userTimeout = 20 * time.Second
+				}
+				SetTCPUserTimeout(tcpConn, userTimeout)
 			}
 			return conn, err
 		}
