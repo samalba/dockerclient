@@ -228,6 +228,9 @@ func (client *DockerClient) ContainerLogs(id string, options *LogOptions) (io.Re
 	if options.Tail > 0 {
 		v.Add("tail", strconv.FormatInt(options.Tail, 10))
 	}
+	if options.Since > 0 {
+		v.Add("since", strconv.Itoa(options.Since))
+	}
 
 	uri := fmt.Sprintf("/%s/containers/%s/logs?%s", APIVersion, id, v.Encode())
 	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)

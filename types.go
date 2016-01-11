@@ -110,6 +110,7 @@ type LogOptions struct {
 	Stderr     bool
 	Timestamps bool
 	Tail       int64
+	Since      int
 }
 
 type AttachOptions struct {
