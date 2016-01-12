@@ -551,4 +551,5 @@ type NetworkConnect struct {
 // NetworkDisconnect represents the data to be used to disconnect a container from the network
 type NetworkDisconnect struct {
 	Container string
+	Force     bool
 }
