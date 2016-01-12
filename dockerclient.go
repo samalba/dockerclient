@@ -920,8 +920,8 @@ func (client *DockerClient) ConnectNetwork(id, container string) error {
 	return err
 }
 
-func (client *DockerClient) DisconnectNetwork(id, container string) error {
-	data, err := json.Marshal(NetworkDisconnect{Container: container})
+func (client *DockerClient) DisconnectNetwork(id, container string, force bool) error {
+	data, err := json.Marshal(NetworkDisconnect{Container: container, Force: force})
 	if err != nil {
 		return err
 	}
