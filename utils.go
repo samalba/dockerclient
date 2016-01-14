@@ -16,21 +16,7 @@ func newHTTPClient(u *url.URL, tlsConfig *tls.Config, timeout time.Duration) *ht
 	switch u.Scheme {
 	default:
 		httpTransport.Dial = func(proto, addr string) (net.Conn, error) {
-			conn, err := net.DialTimeout(proto, addr, timeout)
-			if tcpConn, ok := conn.(*net.TCPConn); ok {
-				// Set TCP user timeout. Sender breaks TCP connection
-				// if packets are not acknowledged after 20 seconds. This is a
-				// relatively new TCP option to improve dead peer detection.
-				// Do not fail newHTTPClient if OS doesn's support it.
-
-				// user timeout shouldn't be too aggressive
-				userTimeout := timeout
-				if userTimeout < 20*time.Second {
-					userTimeout = 20 * time.Second
-				}
-				SetTCPUserTimeout(tcpConn, userTimeout)
-			}
-			return conn, err
+			return net.DialTimeout(proto, addr, timeout)
 		}
 	case "unix":
 		socketPath := u.Path
