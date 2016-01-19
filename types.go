@@ -60,7 +60,7 @@ type HostConfig struct {
 	CpuQuota          int64
 	BlkioWeight       int64
 	OomKillDisable    bool
-	MemorySwappiness  int64
+	MemorySwappiness  *int64
 	Privileged        bool
 	PortBindings      map[string][]PortBinding
 	Links             []string
@@ -233,6 +233,7 @@ type ContainerInfo struct {
 		Gateway     string
 		Bridge      string
 		Ports       map[string][]PortBinding
+		Networks    map[string]*EndpointSettings
 	}
 	SysInitPath    string
 	ResolvConfPath string
@@ -563,4 +564,16 @@ type NetworkConnect struct {
 type NetworkDisconnect struct {
 	Container string
 	Force     bool
+}
+
+// EndpointSettings stores the network endpoint details
+type EndpointSettings struct {
+	EndpointID          string
+	Gateway             string
+	IPAddress           string
+	IPPrefixLen         int
+	IPv6Gateway         string
+	GlobalIPv6Address   string
+	GlobalIPv6PrefixLen int
+	MacAddress          string
 }
