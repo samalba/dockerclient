@@ -274,3 +274,24 @@ func TestDockerClientInterface(t *testing.T) {
 		t.Fatalf("DockerClient does not implement the Client interface")
 	}
 }
+
+func TestListImages(t *testing.T) {
+	client := testDockerClient(t)
+	images, err := client.ListImages(true, "")
+	if err != nil {
+		t.Fatal("cannot list images: %s", err)
+	}
+	assertEqual(t, len(images), 2, "")
+}
+
+func TestListDanglingImages(t *testing.T) {
+	client := testDockerClient(t)
+
+	images, err := client.ListImages(true, "{'dangling':['true']}")
+
+	if err != nil {
+		t.Fatal("cannot list images: %s", err)
+	}
+
+	assertEqual(t, len(images), 1, "")
+}

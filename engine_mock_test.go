@@ -30,6 +30,7 @@ func init() {
 	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
 	r.HandleFunc(baseURL+"/containers/{id}/wait", handleWait).Methods("POST")
 	r.HandleFunc(baseURL+"/images/create", handleImagePull).Methods("POST")
+	r.HandleFunc(baseURL+"/images/json", handleGetImages).Methods("GET")
 	r.HandleFunc(baseURL+"/events", handleEvents).Methods("GET")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
 }
@@ -234,6 +235,64 @@ func handlerGetContainers(w http.ResponseWriter, r *http.Request) {
 	if v, ok := r.URL.Query()["filters"]; ok {
 		if v[0] != "{'id':['332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688ce']}" {
 			body = "[]"
+		}
+	}
+	w.Write([]byte(body))
+}
+
+func handleGetImages(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 200, "images")
+	body := `[
+			{
+   				"Id":"d39c3fa09ced9473c6e4fffa9d26c63cb531d60552abdaf58dd6e703b6662ecd",
+   				"ParentId":"8eb845d8d7f6c255db9550bc1f6031f57d7e0cc599945644dc6f676928b9fec8",
+   				"RepoTags":[
+      				"mysql:latest"
+   				],
+   				"RepoDigests":[
+
+   				],
+   				"Created":1453142946,
+   				"Size":0,
+   				"VirtualSize":360299416,
+   				"Labels":null
+				},
+				{
+					"Id":"0750f4b0fe91d69123565609507f4dd38e19a0469b56d080bd033d89675007ac",
+   				"ParentId":"d77a278aa5b811a93644a73ada70eb941cbe1c7b269fa860723f8bb61e38961c",
+   				"RepoTags":[
+      			"\u003cnone\u003e:\u003cnone\u003e"
+   				],
+   				"RepoDigests":[
+      			"\u003cnone\u003e@\u003cnone\u003e"
+   				],
+   				"Created":1452457247,
+   				"Size":0,
+   				"VirtualSize":655675014,
+   				"Labels":{
+
+   				}
+				}
+]`
+
+	if v, ok := r.URL.Query()["filters"]; ok {
+		if v[0] == "{'dangling':['true']}" {
+			body = `[{
+				"Id":"0750f4b0fe91d69123565609507f4dd38e19a0469b56d080bd033d89675007ac",
+				"ParentId":"d77a278aa5b811a93644a73ada70eb941cbe1c7b269fa860723f8bb61e38961c",
+				"RepoTags":[
+					"\u003cnone\u003e:\u003cnone\u003e"
+				],
+				"RepoDigests":[
+					"\u003cnone\u003e@\u003cnone\u003e"
+				],
+				"Created":1452457247,
+				"Size":0,
+				"VirtualSize":655675014,
+				"Labels":{
+
+				}
+			}]`
 		}
 	}
 	w.Write([]byte(body))
