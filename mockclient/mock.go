@@ -85,8 +85,8 @@ func (client *MockClient) MonitorEvents(options *dockerclient.MonitorEventsOptio
 	return args.Get(0).(<-chan dockerclient.EventOrError), args.Error(1)
 }
 
-func (client *MockClient) StartMonitorEvents(cb dockerclient.Callback, ec chan error, args ...interface{}) {
-	client.Mock.Called(cb, ec, args)
+func (client *MockClient) StartMonitorEvents(options *dockerclient.MonitorEventsOptions, cb dockerclient.Callback, ec chan error, args ...interface{}) {
+	client.Mock.Called(options, cb, ec, args)
 }
 
 func (client *MockClient) StopAllMonitorEvents() {

@@ -33,7 +33,7 @@ func main() {
 
 	client = docker
 
-	client.StartMonitorEvents(eventCallback, nil)
+	client.StartMonitorEvents(nil, eventCallback, nil)
 
 	waitForInterrupt()
 }

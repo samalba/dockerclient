@@ -74,7 +74,7 @@ func (client *NopClient) MonitorEvents(options *dockerclient.MonitorEventsOption
 	return nil, ErrNoEngine
 }
 
-func (client *NopClient) StartMonitorEvents(cb dockerclient.Callback, ec chan error, args ...interface{}) {
+func (client *NopClient) StartMonitorEvents(options *dockerclient.MonitorEventsOptions, cb dockerclient.Callback, ec chan error, args ...interface{}) {
 	return
 }
 

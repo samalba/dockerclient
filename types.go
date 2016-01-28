@@ -124,6 +124,7 @@ type MonitorEventsFilters struct {
 	Event     string `json:",omitempty"`
 	Image     string `json:",omitempty"`
 	Container string `json:",omitempty"`
+	Label     string `json:",omitempty"`
 }
 
 type MonitorEventsOptions struct {
