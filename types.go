@@ -45,7 +45,7 @@ type ContainerConfig struct {
 	HostConfig HostConfig
 
 	// Network configuration support
-	NetworkConfig NetworkingConfig
+	NetworkingConfig NetworkingConfig
 }
 
 type HostConfig struct {
