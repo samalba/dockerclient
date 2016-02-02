@@ -237,7 +237,6 @@ type ContainerInfo struct {
 		Bridge      string
 		Ports       map[string][]PortBinding
 		Networks    map[string]*EndpointSettings
-
 	}
 	SysInitPath    string
 	ResolvConfPath string
@@ -551,6 +550,7 @@ type NetworkResource struct {
 	Scope      string
 	Driver     string
 	IPAM       IPAM
+	Internal   bool
 	Containers map[string]EndpointResource
 	Options    map[string]string
 }
@@ -570,6 +570,7 @@ type NetworkCreate struct {
 	CheckDuplicate bool
 	Driver         string
 	IPAM           IPAM
+	Internal       bool
 	Options        map[string]string
 }
 
