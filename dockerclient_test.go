@@ -222,7 +222,7 @@ func TestContainerStats(t *testing.T) {
 	}
 	containerIds := []string{"foobar", "foo"}
 	expectedResults := [][]StatsOrError{
-		{{Stats: expectedContainerStats}, {Error: fmt.Errorf("error")}},
+		{{Stats: expectedContainerStats}, {Error: fmt.Errorf("invalid character 'i' looking for beginning of value")}},
 		{{Stats: expectedContainerStats}, {Stats: expectedContainerStats}},
 	}
 
@@ -240,9 +240,12 @@ func TestContainerStats(t *testing.T) {
 			if containerStatsOrError.Error != nil {
 				if expectedResult.Error == nil {
 					t.Fatalf("index %d, got unexpected error %v", j, containerStatsOrError.Error)
-				} else {
-					// don't require error equality
+				} else if containerStatsOrError.Error.Error() == expectedResult.Error.Error() {
+					// continue so that we don't try to
+					// compare error values directly
 					continue
+				} else {
+					t.Fatalf("index %d, expected error %q but got %q", j, expectedResult.Error, containerStatsOrError.Error)
 				}
 			}
 			if !reflect.DeepEqual(containerStatsOrError, expectedResult) {

@@ -260,8 +260,7 @@ func (client *DockerClient) ContainerChanges(id string) ([]*ContainerChanges, er
 
 func (client *DockerClient) ContainerStats(id string, stopChan <-chan struct{}) (<-chan StatsOrError, error) {
 	uri := fmt.Sprintf("/%s/containers/%s/stats", APIVersion, id)
-	req, err := http.NewRequest("GET", client.URL.String()+uri, nil)
-	resp, err := client.HTTPClient.Do(req)
+	resp, err := client.HTTPClient.Get(client.URL.String() + uri)
 	if err != nil {
 		return nil, err
 	}
