@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/docker/docker/pkg/stdcopy"
 )
@@ -30,6 +32,40 @@ func testDockerClient(t *testing.T) *DockerClient {
 	return client
 }
 
+func ExampleDockerClient_AttachContainer() {
+	docker, err := NewDockerClient("unix:///var/run/docker.sock", nil)
+	if err != nil {
+		panic(err)
+	}
+	cID, err := docker.CreateContainer(&ContainerConfig{
+		Cmd:   []string{"echo", "hi"},
+		Image: "busybox",
+	}, "", nil)
+	if err != nil {
+		panic(err)
+	}
+	done := make(chan struct{})
+	if body, err := docker.AttachContainer(cID, &AttachOptions{
+		Stream: true,
+		Stdout: true,
+	}); err != nil {
+		panic(err)
+	} else {
+		go func() {
+			defer body.Close()
+			if _, err := stdcopy.StdCopy(os.Stdout, os.Stderr, body); err != nil {
+				panic(err)
+			}
+			close(done)
+		}()
+	}
+
+	if err := docker.StartContainer(cID, nil); err != nil {
+		panic(err)
+	}
+	<-done
+}
+
 func TestInfo(t *testing.T) {
 	client := testDockerClient(t)
 	info, err := client.Info()
@@ -44,6 +80,26 @@ func TestKillContainer(t *testing.T) {
 	client := testDockerClient(t)
 	if err := client.KillContainer("23132acf2ac", "5"); err != nil {
 		t.Fatal("cannot kill container: %s", err)
+	}
+}
+
+func TestWait(t *testing.T) {
+	client := testDockerClient(t)
+
+	// This provokes an error on the server.
+	select {
+	case wr := <-client.Wait("1234"):
+		assertEqual(t, wr.ExitCode, int(-1), "")
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out!")
+	}
+
+	// Valid case.
+	select {
+	case wr := <-client.Wait("valid-id"):
+		assertEqual(t, wr.ExitCode, int(0), "")
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out!")
 	}
 }
 
@@ -98,6 +154,7 @@ func TestListContainersWithSize(t *testing.T) {
 	cnt := containers[0]
 	assertEqual(t, cnt.SizeRw, int64(123), "")
 }
+
 func TestListContainersWithFilters(t *testing.T) {
 	client := testDockerClient(t)
 	containers, err := client.ListContainers(true, true, "{'id':['332375cfbc23edb921a21026314c3497674ba8bdcb2c85e0e65ebf2017f688ce']}")

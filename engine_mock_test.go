@@ -13,7 +13,6 @@ import (
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/jsonlog"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/docker/docker/pkg/timeutils"
 	"github.com/gorilla/mux"
 )
 
@@ -30,6 +29,7 @@ func init() {
 	r.HandleFunc(baseURL+"/containers/{id}/changes", handleContainerChanges).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/stats", handleContainerStats).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/{id}/kill", handleContainerKill).Methods("POST")
+	r.HandleFunc(baseURL+"/containers/{id}/wait", handleWait).Methods("POST")
 	r.HandleFunc(baseURL+"/images/create", handleImagePull).Methods("POST")
 	r.HandleFunc(baseURL+"/events", handleEvents).Methods("GET")
 	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
@@ -45,6 +45,15 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 
 func handleContainerKill(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{%q:%q", "Id", "421373210afd132")
+}
+
+func handleWait(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	if vars["id"] == "valid-id" {
+		fmt.Fprintf(w, `{"StatusCode":0}`)
+	} else {
+		http.Error(w, "failed", 500)
+	}
 }
 
 func handleImagePull(w http.ResponseWriter, r *http.Request) {
@@ -99,8 +108,8 @@ func handleContainerLogs(w http.ResponseWriter, r *http.Request) {
 	for ; i < 50; i++ {
 		line := fmt.Sprintf("line %d", i)
 		if getBoolValue(r.Form.Get("timestamps")) {
-			l := &jsonlog.JSONLog{Log: line, Created: time.Now()}
-			line = fmt.Sprintf("%s %s", l.Created.Format(timeutils.RFC3339NanoFixed), line)
+			l := &jsonlog.JSONLog{Log: line, Created: time.Now().UTC()}
+			line = fmt.Sprintf("%s %s", l.Created.Format(jsonlog.RFC3339NanoFixed), line)
 		}
 		if i%2 == 0 && stderr {
 			fmt.Fprintln(errStream, line)
