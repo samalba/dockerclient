@@ -545,12 +545,12 @@ type EndpointIPAMConfig struct {
 
 // NetworkResource is the body of the "get network" http response message
 type NetworkResource struct {
-	Name       string
-	ID         string `json:"Id"`
-	Scope      string
-	Driver     string
-	IPAM       IPAM
-	Internal   bool
+	Name   string
+	ID     string `json:"Id"`
+	Scope  string
+	Driver string
+	IPAM   IPAM
+	//Internal   bool
 	Containers map[string]EndpointResource
 	Options    map[string]string
 }
