@@ -19,6 +19,13 @@ import (
 var _ Client = (*DockerClient)(nil)
 
 const (
+	// APIVersion is currently hardcoded to v1.15
+	// TODO: bump the API version or allow users to choose which API version to
+	// use the client with. The current value does not make sense for many
+	// methods, such as ContainerStats, StartMonitorStats, and StopAllMonitorStats
+	// (v1.17) and
+	// ListVolumes, {Remove,Create}Volume, ListNetworks,
+	// {Inspect,Create,Connect,Disconnect,Remove}Network (v1.21)
 	APIVersion = "v1.15"
 )
 
