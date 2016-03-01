@@ -271,6 +271,7 @@ func (client *DockerClient) ContainerStats(id string, stopChan <-chan struct{}) 
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	decode := func(decoder *json.Decoder) decodingResult {
 		var containerStats Stats
@@ -318,14 +319,12 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 		for {
 			select {
 			case <-stopChan:
-				stream.Close()
 				for range decodeChan {
 				}
 				return
 			case decodeResult := <-decodeChan:
 				resultChan <- decodeResult
 				if decodeResult.err != nil {
-					stream.Close()
 					return
 				}
 			}
@@ -503,6 +502,7 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions, stopCha
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	decode := func(decoder *json.Decoder) decodingResult {
 		var event Event
