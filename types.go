@@ -91,7 +91,7 @@ type HostConfig struct {
 	VolumeDriver         string
 	OomScoreAdj          int
 	Tmpfs                map[string]string
-	ShmSize              int64
+	ShmSize              int64 `json:"omitempty"`
 	BlkioWeightDevice    []WeightDevice
 	BlkioDeviceReadBps   []ThrottleDevice
 	BlkioDeviceWriteBps  []ThrottleDevice
