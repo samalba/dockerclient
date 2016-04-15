@@ -489,6 +489,9 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions, stopCha
 			if len(options.Filters.Container) > 0 {
 				filterMap["container"] = []string{options.Filters.Container}
 			}
+			if len(options.Filters.Label) > 0 {
+				filterMap["label"] = []string{options.Filters.Label}
+			}
 			if len(filterMap) > 0 {
 				filterJSONBytes, err := json.Marshal(filterMap)
 				if err != nil {
@@ -527,11 +530,11 @@ func (client *DockerClient) MonitorEvents(options *MonitorEventsOptions, stopCha
 	return eventOrErrorChan, nil
 }
 
-func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args ...interface{}) {
+func (client *DockerClient) StartMonitorEvents(options *MonitorEventsOptions, cb Callback, ec chan error, args ...interface{}) {
 	client.eventStopChan = make(chan struct{})
 
 	go func() {
-		eventErrChan, err := client.MonitorEvents(nil, client.eventStopChan)
+		eventErrChan, err := client.MonitorEvents(options, client.eventStopChan)
 		if err != nil {
 			if ec != nil {
 				ec <- err

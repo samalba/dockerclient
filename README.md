@@ -79,7 +79,7 @@ func main() {
 	docker.StopContainer(containerId, 5)
 
 	// Listen to events
-	docker.StartMonitorEvents(eventCallback, nil)
+	docker.StartMonitorEvents(nil, eventCallback, nil)
 
 	// Hold the execution to look at the events coming
 	time.Sleep(3600 * time.Second)

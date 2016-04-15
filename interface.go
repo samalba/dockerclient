@@ -36,7 +36,7 @@ type Client interface {
 	// events will be sent. If a stop channel is provided, events will stop
 	// being monitored after the stop channel is closed.
 	MonitorEvents(options *MonitorEventsOptions, stopChan <-chan struct{}) (<-chan EventOrError, error)
-	StartMonitorEvents(cb Callback, ec chan error, args ...interface{})
+	StartMonitorEvents(options *MonitorEventsOptions, cb Callback, ec chan error, args ...interface{})
 	StopAllMonitorEvents()
 	StartMonitorStats(id string, cb StatCallback, ec chan error, args ...interface{})
 	StopAllMonitorStats()
