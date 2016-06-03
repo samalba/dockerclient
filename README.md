@@ -1,6 +1,7 @@
 Docker client library in Go
 ===========================
 [![GoDoc](http://godoc.org/github.com/samalba/dockerclient?status.png)](http://godoc.org/github.com/samalba/dockerclient)
+[![Build Status](https://travis-ci.org/samalba/dockerclient.svg?branch=master)](https://travis-ci.org/samalba/dockerclient)
 
 No longer well-maintained docker client library. Docker's supported engine
 API client for go is [docker/engine-api](http://github.com/docker/engine-api).

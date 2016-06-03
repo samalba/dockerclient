@@ -1,0 +1,10 @@
+
+language: go
+
+go_import_path: github.com/samalba/dockerclient
+
+go:
+    - 1.4
+    - 1.5
+
+script: godep go test -v ./...
