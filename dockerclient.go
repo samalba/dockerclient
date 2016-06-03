@@ -157,6 +157,11 @@ func (client *DockerClient) Info() (*Info, error) {
 }
 
 func (client *DockerClient) ListContainers(all bool, size bool, filters string) ([]Container, error) {
+	return client.ListContainersWithOptions(all, size, "", "", "", filters)
+}
+
+// ListContainersWithOptions behaves like ListContainers but allowing additionnal options
+func (client *DockerClient) ListContainersWithOptions(all, size bool, limit, since, before, filters string) ([]Container, error) {
 	argAll := 0
 	if all == true {
 		argAll = 1
@@ -165,7 +170,20 @@ func (client *DockerClient) ListContainers(all bool, size bool, filters string) 
 	if size == true {
 		showSize = 1
 	}
+
 	uri := fmt.Sprintf("/%s/containers/json?all=%d&size=%d", APIVersion, argAll, showSize)
+
+	if limit != "" {
+		uri += "&limit=" + limit
+	}
+
+	if since != "" {
+		uri += "&since=" + since
+	}
+
+	if before != "" {
+		uri += "&before=" + before
+	}
 
 	if filters != "" {
 		uri += "&filters=" + filters
