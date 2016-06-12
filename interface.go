@@ -46,7 +46,7 @@ type Client interface {
 	PushImage(name string, tag string, auth *AuthConfig) error
 	LoadImage(reader io.Reader) error
 	RemoveContainer(id string, force, volumes bool) error
-	ListImages(all bool) ([]*Image, error)
+	ListImages(all bool, filters string) ([]*Image, error)
 	RemoveImage(name string, force bool) ([]*ImageDelete, error)
 	SearchImages(query, registry string, auth *AuthConfig) ([]ImageSearch, error)
 	PauseContainer(name string) error
