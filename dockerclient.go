@@ -319,7 +319,7 @@ func (client *DockerClient) readJSONStream(stream io.ReadCloser, decode func(*js
 			select {
 			case <-stopChan:
 				stream.Close()
-				for range decodeChan {
+				for _ = range decodeChan {
 				}
 				return
 			case decodeResult := <-decodeChan:
