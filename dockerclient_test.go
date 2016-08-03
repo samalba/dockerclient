@@ -76,6 +76,15 @@ func TestInfo(t *testing.T) {
 	assertEqual(t, info.Containers, int64(2), "")
 }
 
+func TestPing(t *testing.T) {
+	client := testDockerClient(t)
+	pong, err := client.Ping()
+	if err != nil {
+		t.Fatal("Cannot ping server")
+	}
+	assertEqual(t, pong, "OK", "")
+}
+
 func TestKillContainer(t *testing.T) {
 	client := testDockerClient(t)
 	if err := client.KillContainer("23132acf2ac", "5"); err != nil {

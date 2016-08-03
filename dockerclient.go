@@ -156,6 +156,16 @@ func (client *DockerClient) Info() (*Info, error) {
 	return ret, nil
 }
 
+func (client *DockerClient) Ping() (string, error) {
+	uri := fmt.Sprintf("/%s/_ping", APIVersion)
+	data, err := client.doRequest("GET", uri, nil, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 func (client *DockerClient) ListContainers(all bool, size bool, filters string) ([]Container, error) {
 	argAll := 0
 	if all == true {
