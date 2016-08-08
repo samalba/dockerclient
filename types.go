@@ -267,6 +267,9 @@ type ContainerInfo struct {
 	Config          *ContainerConfig
 	State           *State
 	Image           string
+	Name            string
+	Driver          string
+	ExecDriver      string
 	NetworkSettings struct {
 		IPAddress   string `json:"IpAddress"`
 		IPPrefixLen int    `json:"IpPrefixLen"`
