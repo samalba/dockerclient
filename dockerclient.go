@@ -370,6 +370,14 @@ func (client *DockerClient) ExecStart(id string, config *ExecConfig) error {
 }
 
 func (client *DockerClient) ExecResize(id string, width, height int) error {
+	return client.resize("exec", id, width, height)
+}
+
+func (client *DockerClient) ContainerResize(id string, width, height int) error {
+	return client.resize("containers", id, width, height)
+}
+
+func (client *DockerClient) resize(mode, id string, width, height int) error {
 	v := url.Values{}
 
 	w := strconv.Itoa(width)
@@ -378,8 +386,8 @@ func (client *DockerClient) ExecResize(id string, width, height int) error {
 	v.Set("w", w)
 	v.Set("h", h)
 
-	uri := fmt.Sprintf("/%s/exec/%s/resize?%s", APIVersion, id, v.Encode())
-	if _, err := client.doRequest("POST", client.URL.String()+uri, nil, nil); err != nil {
+	uri := fmt.Sprintf("/%s/%s/%s/resize?%s", APIVersion, mode, id, v.Encode())
+	if _, err := client.doRequest("POST", uri, nil, nil); err != nil {
 		return err
 	}
 
