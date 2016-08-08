@@ -75,6 +75,10 @@ func NewDockerClientTimeout(daemonUrl string, tlsConfig *tls.Config, timeout tim
 	return &DockerClient{u, httpClient, tlsConfig, 0, nil}, nil
 }
 
+func NewDockerClientFromHttpClient(u *url.URL, httpClient *http.Client, tlsConfig *tls.Config) (*DockerClient, error) {
+	return &DockerClient{u, httpClient, tlsConfig, 0}, nil
+}
+
 func (client *DockerClient) doRequest(method string, path string, body []byte, headers map[string]string) ([]byte, error) {
 	b := bytes.NewBuffer(body)
 
