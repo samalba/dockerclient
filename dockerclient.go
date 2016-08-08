@@ -555,6 +555,7 @@ func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args 
 	client.eventStopChan = make(chan struct{})
 
 	go func() {
+	retry:
 		eventErrChan, err := client.MonitorEvents(nil, client.eventStopChan)
 		if err != nil {
 			if ec != nil {
@@ -565,6 +566,9 @@ func (client *DockerClient) StartMonitorEvents(cb Callback, ec chan error, args 
 
 		for e := range eventErrChan {
 			if e.Error != nil {
+				if e.Error.Error() == "EOF" {
+					goto retry
+				}
 				if ec != nil {
 					ec <- e.Error
 				}
