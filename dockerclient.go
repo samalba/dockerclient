@@ -952,7 +952,7 @@ func (client *DockerClient) ListNetworks(filters string) ([]*NetworkResource, er
 	uri := fmt.Sprintf("/%s/networks", APIVersion)
 
 	if filters != "" {
-		uri += "&filters=" + filters
+		uri += "?filters=" + filters
 	}
 
 	data, err := client.doRequest("GET", uri, nil, nil)
