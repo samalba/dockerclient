@@ -23,7 +23,7 @@ type Client interface {
 	// closed.
 	ContainerStats(id string, stopChan <-chan struct{}) (<-chan StatsOrError, error)
 	ExecCreate(config *ExecConfig) (string, error)
-	ExecStart(id string, config *ExecConfig) error
+	ExecStart(id string, config *ExecConfig) (string,error)
 	ExecResize(id string, width, height int) error
 	StartContainer(id string, config *HostConfig) error
 	AttachContainer(id string, options *AttachOptions) (io.ReadCloser, error)
