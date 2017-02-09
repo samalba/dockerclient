@@ -355,18 +355,19 @@ func (client *DockerClient) ExecCreate(config *ExecConfig) (string, error) {
 	return createExecResp.Id, nil
 }
 
-func (client *DockerClient) ExecStart(id string, config *ExecConfig) error {
+func (client *DockerClient) ExecStart(id string, config *ExecConfig) (string, error) {
 	data, err := json.Marshal(config)
 	if err != nil {
-		return err
+		return "",err
 	}
 
 	uri := fmt.Sprintf("/%s/exec/%s/start", APIVersion, id)
-	if _, err := client.doRequest("POST", uri, data, nil); err != nil {
-		return err
+	result, err := client.doRequest("POST", uri, data, nil)
+	if  err != nil {
+		return "",err
 	}
 
-	return nil
+	return string(result), nil
 }
 
 func (client *DockerClient) ExecResize(id string, width, height int) error {
