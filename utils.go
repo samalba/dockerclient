@@ -13,6 +13,7 @@ type tcpFunc func(*net.TCPConn, time.Duration) error
 func newHTTPClient(u *url.URL, tlsConfig *tls.Config, timeout time.Duration, setUserTimeout tcpFunc) *http.Client {
 	httpTransport := &http.Transport{
 		TLSClientConfig: tlsConfig,
+		Proxy: http.ProxyFromEnvironment,
 	}
 
 	switch u.Scheme {
