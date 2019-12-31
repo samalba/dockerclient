@@ -142,11 +142,11 @@ type AttachOptions struct {
 }
 
 type MonitorEventsFilters struct {
-	Event        string `json:",omitempty"`
+	Event      string   `json:",omitempty"`
 	Events     []string `json:",omitempty"`
-	Image        string `json:",omitempty"`
+	Image      string   `json:",omitempty"`
 	Images     []string `json:",omitempty"`
-	Container    string `json:",omitempty"`
+	Container  string   `json:",omitempty"`
 	Containers []string `json:",omitempty"`
 }
 

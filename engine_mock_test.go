@@ -3,6 +3,7 @@ package dockerclient
 import (
 	"encoding/json"
 	"fmt"
+
 	"io"
 	"log"
 	"net/http"
@@ -10,8 +11,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/docker/docker/daemon/logger/jsonfilelog/jsonlog"
 	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/jsonlog"
+	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/gorilla/mux"
 )
@@ -109,7 +111,7 @@ func handleContainerLogs(w http.ResponseWriter, r *http.Request) {
 		line := fmt.Sprintf("line %d", i)
 		if getBoolValue(r.Form.Get("timestamps")) {
 			l := &jsonlog.JSONLog{Log: line, Created: time.Now().UTC()}
-			line = fmt.Sprintf("%s %s", l.Created.Format(jsonlog.RFC3339NanoFixed), line)
+			line = fmt.Sprintf("%s %s", l.Created.Format(jsonmessage.RFC3339NanoFixed), line)
 		}
 		if i%2 == 0 && stderr {
 			fmt.Fprintln(errStream, line)
