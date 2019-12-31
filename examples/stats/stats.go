@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/samalba/dockerclient"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/samalba/dockerclient"
 )
 
 func statCallback(id string, stat *dockerclient.Stats, ec chan error, args ...interface{}) {
