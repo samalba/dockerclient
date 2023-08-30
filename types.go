@@ -314,7 +314,7 @@ type EndpointSettings struct {
 // NetworkingConfig represents the container's networking configuration for each of its interfaces
 // Carries the networink configs specified in the `docker run` and `docker network connect` commands
 type NetworkingConfig struct {
-	EndpointsConfig map[string]*EndpointSettings // Endpoint configs for each conencting network
+	EndpointsConfig map[string]*EndpointSettings // Endpoint configs for each connecting network
 }
 
 type Container struct {
